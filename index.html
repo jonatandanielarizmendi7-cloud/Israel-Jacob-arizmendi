@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Israel Jacob Arizmendi</title>
+</head>
+
+<body>
+  <h1>Israel Jacob Arizmendi</h1>
+
+  <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
+
+  <button onclick="hablar()">🎙️ Hablar conmigo</button>
+
+  <script>
+    function hablar() {
+      const mensaje = new SpeechSynthesisUtterance(
+        "Hola. Soy Israel Jacob Arizmendi. Estoy listo para escucharte."
+      );
+
+      mensaje.lang = "es-ES";
+      speechSynthesis.speak(mensaje);
+    }
+  </script>
+</body>
+</html>
