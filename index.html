@@ -11,53 +11,74 @@
 
   <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
 
-  <button onclick="escuchar()">🎙️ Hablar conmigo</button>
+  <button id="boton">🎙️ Hablar conmigo</button>
 
   <p id="resultado">Toca el botón y habla.</p>
 
   <script>
-    function escuchar() {
-      const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const boton = document.getElementById("boton");
+    const resultado = document.getElementById("resultado");
+
+    const Reconocimiento =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    function hablar(texto) {
+      const mensaje = new SpeechSynthesisUtterance(texto);
+      mensaje.lang = "es-ES";
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(mensaje);
+    }
+
+    boton.onclick = function () {
 
       if (!Reconocimiento) {
-        hablar("Tu navegador no permite usar el reconocimiento de voz.");
+        resultado.textContent =
+          "Este navegador no permite reconocimiento de voz.";
+        hablar("Este navegador no permite reconocimiento de voz.");
         return;
       }
 
       const reconocimiento = new Reconocimiento();
-alert("El micrófono está intentando activarse");
+
       reconocimiento.lang = "es-ES";
       reconocimiento.continuous = false;
       reconocimiento.interimResults = false;
 
-      reconocimiento.onstart = function() {
-        document.getElementById("resultado").textContent = "🎤 Te estoy escuchando...";
+      resultado.textContent = "🎤 Preparando el micrófono...";
+
+      reconocimiento.onstart = function () {
+        resultado.textContent = "🎤 Te estoy escuchando. Habla ahora.";
       };
 
-      reconocimiento.onresult = function(event) {
-        const texto = event.results[0][0].transcript;
+      reconocimiento.onresult = function (event) {
+        const texto =
+          event.results[0][0].transcript;
 
-        document.getElementById("resultado").textContent =
+        resultado.textContent =
           "Tú dijiste: " + texto;
 
         hablar("Escuché que dijiste: " + texto);
       };
 
-      reconocimiento.onerror = function(event) {
-        document.getElementById("resultado").textContent =
-          "No pude escucharte. Intenta nuevamente.";
+      reconocimiento.onerror = function (event) {
+        resultado.textContent =
+          "Error del micrófono: " + event.error;
 
-        hablar("No pude escucharte. Intenta nuevamente.");
+        console.log("Error de reconocimiento:", event.error);
       };
 
-      reconocimiento.start();
-    }
+      reconocimiento.onend = function () {
+        console.log("Reconocimiento terminado.");
+      };
 
-    function hablar(texto) {
-      const mensaje = new SpeechSynthesisUtterance(texto);
-      mensaje.lang = "es-ES";
-      speechSynthesis.speak(mensaje);
-    }
+      try {
+        reconocimiento.start();
+      } catch (error) {
+        resultado.textContent =
+          "No se pudo iniciar el micrófono: " + error.message;
+      }
+    };
   </script>
 </body>
 </html>
