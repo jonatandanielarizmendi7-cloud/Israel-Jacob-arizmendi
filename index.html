@@ -14,14 +14,31 @@
   <button onclick="hablar()">🎙️ Hablar conmigo</button>
 
   <script>
-    function hablar() {
-      const mensaje = new SpeechSynthesisUtterance(
-        "Hola. Soy Israel Jacob Arizmendi. Estoy listo para escucharte."
-      );
+    
 
-      mensaje.lang = "es-ES";
-      speechSynthesis.speak(mensaje);
-    }
-  </script>
-</body>
-</html>
+function hablar() {
+  const reconocimiento = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+  reconocimiento.lang = "es-ES";
+  reconocimiento.start();
+
+  reconocimiento.onresult = function(event) {
+    const texto = event.results[0][0].transcript;
+
+    const mensaje = new SpeechSynthesisUtterance(
+      "Escuché que dijiste: " + texto
+    );
+
+    mensaje.lang = "es-ES";
+    speechSynthesis.speak(mensaje);
+  };
+
+  reconocimiento.onerror = function() {
+    const mensaje = new SpeechSynthesisUtterance(
+      "No pude escucharte. Intenta nuevamente."
+    );
+
+    mensaje.lang = "es-ES";
+    speechSynthesis.speak(mensaje);
+  };
+}
