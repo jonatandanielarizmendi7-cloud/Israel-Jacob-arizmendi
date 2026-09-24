@@ -11,34 +11,53 @@
 
   <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
 
-  <button onclick="hablar()">🎙️ Hablar conmigo</button>
+  <button onclick="escuchar()">🎙️ Hablar conmigo</button>
+
+  <p id="resultado">Toca el botón y habla.</p>
 
   <script>
-    
+    function escuchar() {
+      const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-function hablar() {
-  const reconocimiento = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      if (!Reconocimiento) {
+        hablar("Tu navegador no permite usar el reconocimiento de voz.");
+        return;
+      }
 
-  reconocimiento.lang = "es-ES";
-  reconocimiento.start();
+      const reconocimiento = new Reconocimiento();
 
-  reconocimiento.onresult = function(event) {
-    const texto = event.results[0][0].transcript;
+      reconocimiento.lang = "es-ES";
+      reconocimiento.continuous = false;
+      reconocimiento.interimResults = false;
 
-    const mensaje = new SpeechSynthesisUtterance(
-      "Escuché que dijiste: " + texto
-    );
+      reconocimiento.onstart = function() {
+        document.getElementById("resultado").textContent = "🎤 Te estoy escuchando...";
+      };
 
-    mensaje.lang = "es-ES";
-    speechSynthesis.speak(mensaje);
-  };
+      reconocimiento.onresult = function(event) {
+        const texto = event.results[0][0].transcript;
 
-  reconocimiento.onerror = function() {
-    const mensaje = new SpeechSynthesisUtterance(
-      "No pude escucharte. Intenta nuevamente."
-    );
+        document.getElementById("resultado").textContent =
+          "Tú dijiste: " + texto;
 
-    mensaje.lang = "es-ES";
-    speechSynthesis.speak(mensaje);
-  };
-}
+        hablar("Escuché que dijiste: " + texto);
+      };
+
+      reconocimiento.onerror = function(event) {
+        document.getElementById("resultado").textContent =
+          "No pude escucharte. Intenta nuevamente.";
+
+        hablar("No pude escucharte. Intenta nuevamente.");
+      };
+
+      reconocimiento.start();
+    }
+
+    function hablar(texto) {
+      const mensaje = new SpeechSynthesisUtterance(texto);
+      mensaje.lang = "es-ES";
+      speechSynthesis.speak(mensaje);
+    }
+  </script>
+</body>
+</html>
