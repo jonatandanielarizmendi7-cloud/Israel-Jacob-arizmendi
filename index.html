@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,6 +17,8 @@
   <p id="resultado">Toca el botón y habla.</p>
 
   <script>
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxK1UZwPoicDTjcgiKJwAKuQ7aD99rU4KP8ainD4E3wZD-BcuUdCFbdzlJpmSIMG1KB/exec";
+
     const boton = document.getElementById("boton");
     const resultado = document.getElementById("resultado");
 
@@ -48,35 +51,58 @@
       resultado.textContent = "🎤 Preparando el micrófono...";
 
       reconocimiento.onstart = function () {
-        resultado.textContent = "🎤 Te estoy escuchando. Habla ahora.";
+        resultado.textContent =
+          "🎤 Te estoy escuchando. Habla ahora.";
       };
 
-      reconocimiento.onresult = function (event) {
+      reconocimiento.onresult = async function (event) {
+
         const texto =
           event.results[0][0].transcript;
 
         resultado.textContent =
-          "Tú dijiste: " + texto;
+          "Tú dijiste: " + texto +
+          "\n\n🤖 IJA está pensando...";
 
-        hablar("Escuché que dijiste: " + texto);
+        try {
+
+          const respuesta = await fetch(URL_APPS_SCRIPT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              pregunta: texto
+            })
+          });
+
+          const datos = await respuesta.json();
+
+          resultado.textContent =
+            "Tú dijiste: " + texto +
+            "\n\n🤖 IJA: " + datos.respuesta;
+
+          hablar(datos.respuesta);
+
+        } catch (error) {
+
+          resultado.textContent =
+            "No pude conectar con IJA. Intenta nuevamente.";
+
+          console.log("Error de conexión:", error);
+        }
       };
 
       reconocimiento.onerror = function (event) {
         resultado.textContent =
           "Error del micrófono: " + event.error;
-
-        console.log("Error de reconocimiento:", event.error);
-      };
-
-      reconocimiento.onend = function () {
-        console.log("Reconocimiento terminado.");
       };
 
       try {
         reconocimiento.start();
       } catch (error) {
         resultado.textContent =
-          "No se pudo iniciar el micrófono: " + error.message;
+          "No se pudo iniciar el micrófono.";
       }
     };
   </script>
