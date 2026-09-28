@@ -104,11 +104,43 @@
 
         const texto =
           event.results[0][0].transcript;
-
-
+        
         resultado.textContent =
-          "Tú dijiste: " + texto +
-          "\n\n🤖 IJA: Te escuché correctamente.";
+  "Tú dijiste: " + texto +
+  "\n\n🤖 IJA está pensando...";
+
+fetch("https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec", {
+  method: "POST",
+  headers: {
+    "Content-Type": "text/plain;charset=utf-8"
+  },
+  body: JSON.stringify({
+    pregunta: texto
+  })
+})
+.then(respuesta => respuesta.json())
+.then(datos => {
+
+  if (!datos.ok) {
+    resultado.textContent =
+      "IJA encontró un problema: " +
+      (datos.error || "Error desconocido.");
+    return;
+  }
+
+  resultado.textContent =
+    "Tú dijiste: " + texto +
+    "\n\n🤖 IJA: " + datos.respuesta;
+
+  hablar(datos.respuesta);
+
+})
+.catch(error => {
+
+  resultado.textContent =
+    "ERROR REAL: " + error.message;
+
+});
 
 
         hablar(
