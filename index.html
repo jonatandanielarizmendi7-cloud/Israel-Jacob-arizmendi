@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,6 +7,7 @@
 </head>
 
 <body>
+
   <h1>Israel Jacob Arizmendi</h1>
 
   <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
@@ -17,7 +17,10 @@
   <p id="resultado">Toca el botón y habla.</p>
 
   <script>
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec"; 
+
+    const URL_APPS_SCRIPT =
+      "https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec";
+
     const boton = document.getElementById("boton");
     const resultado = document.getElementById("resultado");
 
@@ -25,85 +28,162 @@
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
+
     function hablar(texto) {
-      const mensaje = new SpeechSynthesisUtterance(texto);
+
+      const mensaje =
+        new SpeechSynthesisUtterance(texto);
+
       mensaje.lang = "es-ES";
+
       window.speechSynthesis.cancel();
+
       window.speechSynthesis.speak(mensaje);
     }
+
 
     boton.onclick = function () {
 
       if (!Reconocimiento) {
+
         resultado.textContent =
           "Este navegador no permite reconocimiento de voz.";
-        hablar("Este navegador no permite reconocimiento de voz.");
+
+        hablar(
+          "Este navegador no permite reconocimiento de voz."
+        );
+
         return;
       }
 
-      const reconocimiento = new Reconocimiento();
+
+      const reconocimiento =
+        new Reconocimiento();
+
 
       reconocimiento.lang = "es-ES";
+
       reconocimiento.continuous = false;
+
       reconocimiento.interimResults = false;
 
-      resultado.textContent = "🎤 Preparando el micrófono...";
+
+      resultado.textContent =
+        "🎤 Preparando el micrófono...";
+
 
       reconocimiento.onstart = function () {
+
         resultado.textContent =
           "🎤 Te estoy escuchando. Habla ahora.";
+
       };
+
 
       reconocimiento.onresult = async function (event) {
 
         const texto =
           event.results[0][0].transcript;
 
+
         resultado.textContent =
           "Tú dijiste: " + texto +
           "\n\n🤖 IJA está pensando...";
 
+
         try {
 
-          const respuesta = await fetch(URL_APPS_SCRIPT, {
-            method: "POST",
-        headers: {
-  "Content-Type": "application/json"
-},
-            body: JSON.stringify({
-              pregunta: texto
-            })
-          });
+          const respuesta =
+            await fetch(URL_APPS_SCRIPT, {
 
-          const datos = await respuesta.json();
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify({
+                pregunta: texto
+              })
+
+            });
+
+
+          const datos =
+            await respuesta.json();
+
+
+          if (!datos.ok) {
+
+            resultado.textContent =
+              "IJA encontró un problema: " +
+              (datos.error || "Error desconocido.");
+
+            return;
+          }
+
 
           resultado.textContent =
             "Tú dijiste: " + texto +
-            "\n\n🤖 IJA: " + datos.respuesta;
+            "\n\n🤖 IJA: " +
+            datos.respuesta;
+
 
           hablar(datos.respuesta);
 
-        } clog("Error de conexión:", error);
-        
-} catch (error) {
+        }
 
-  resultado.textContent =
-    "ERROR REAL: " + error.message;
 
-  console.log("Error de conexión:", error);
-      }
-      reconocimiento.onerror = function (event) {
-        resultado.textContent =
-          "Error del micrófono: " + event.error;
+        catch (error) {
+
+          resultado.textContent =
+            "ERROR REAL: " +
+            error.message;
+
+          console.log(
+            "Error de conexión:",
+            error
+          );
+
+        }
+
       };
 
+
+      reconocimiento.onerror = function (event) {
+
+        resultado.textContent =
+          "Error del micrófono: " +
+          event.error;
+
+      };
+
+
+      reconocimiento.onend = function () {
+
+        console.log(
+          "Reconocimiento de voz terminado."
+        );
+
+      };
+
+
       try {
+
         reconocimiento.start();
-      } catch (error) {
+
+      }
+
+      catch (error) {
+
         resultado.textContent =
           "No se pudo iniciar el micrófono.";
+
       }
+
     };
+
   </script>
+
 </body>
 </html>
