@@ -3,7 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Israel Jacob Arizmendi</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 15px 25px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #resultado {
+      margin-top: 25px;
+      font-size: 18px;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 
 <body>
@@ -17,9 +40,6 @@
   <p id="resultado">Toca el botón y habla.</p>
 
   <script>
-
-    const URL_APPS_SCRIPT =
-      "https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec";
 
     const boton = document.getElementById("boton");
     const resultado = document.getElementById("resultado");
@@ -47,10 +67,10 @@
       if (!Reconocimiento) {
 
         resultado.textContent =
-          "Este navegador no permite reconocimiento de voz.";
+          "Tu navegador no permite reconocimiento de voz.";
 
         hablar(
-          "Este navegador no permite reconocimiento de voz."
+          "Tu navegador no permite reconocimiento de voz."
         );
 
         return;
@@ -80,7 +100,7 @@
       };
 
 
-      reconocimiento.onresult = async function (event) {
+      reconocimiento.onresult = function (event) {
 
         const texto =
           event.results[0][0].transcript;
@@ -88,64 +108,12 @@
 
         resultado.textContent =
           "Tú dijiste: " + texto +
-          "\n\n🤖 IJA está pensando...";
+          "\n\n🤖 IJA: Te escuché correctamente.";
 
 
-        try {
-
-          const respuesta =
-            await fetch(URL_APPS_SCRIPT, {
-
-              method: "POST",
-
-              headers: {
-                "Content-Type": "application/json"
-              },
-
-              body: JSON.stringify({
-                pregunta: texto
-              })
-
-            });
-
-
-          const datos =
-            await respuesta.json();
-
-
-          if (!datos.ok) {
-
-            resultado.textContent =
-              "IJA encontró un problema: " +
-              (datos.error || "Error desconocido.");
-
-            return;
-          }
-
-
-          resultado.textContent =
-            "Tú dijiste: " + texto +
-            "\n\n🤖 IJA: " +
-            datos.respuesta;
-
-
-          hablar(datos.respuesta);
-
-        }
-
-
-        catch (error) {
-
-          resultado.textContent =
-            "ERROR REAL: " +
-            error.message;
-
-          console.log(
-            "Error de conexión:",
-            error
-          );
-
-        }
+        hablar(
+          "Te escuché correctamente. Dijiste: " + texto
+        );
 
       };
 
