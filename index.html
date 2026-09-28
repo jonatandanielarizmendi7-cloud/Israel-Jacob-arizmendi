@@ -83,15 +83,15 @@
 
           hablar(datos.respuesta);
 
-        } catch (error) {
+        } clog("Error de conexión:", error);
+        
+} catch (error) {
 
-          resultado.textContent =
-            "No pude conectar con IJA. Intenta nuevamente.";
+  resultado.textContent =
+    "ERROR REAL: " + error.message;
 
-          console.log("Error de conexión:", error);
-        }
-      };
-
+  console.log("Error de conexión:", error);
+      }
       reconocimiento.onerror = function (event) {
         resultado.textContent =
           "Error del micrófono: " + event.error;
