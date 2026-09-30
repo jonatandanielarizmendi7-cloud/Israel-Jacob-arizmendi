@@ -11,6 +11,21 @@
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 30px;
+      margin: 0;
+      background: #f5f5f5;
+    }
+
+    .contenedor {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+    }
+
+    h1 {
+      margin-bottom: 10px;
     }
 
     button {
@@ -19,25 +34,91 @@
       border-radius: 12px;
       border: none;
       cursor: pointer;
+      margin-top: 15px;
+    }
+
+    #boton {
+      background: #222;
+      color: white;
+    }
+
+    #boton:disabled {
+      opacity: 0.6;
     }
 
     #resultado {
       margin-top: 25px;
       font-size: 18px;
       white-space: pre-line;
+      text-align: left;
+      padding: 15px;
+      border-radius: 12px;
+      background: #f1f1f1;
+    }
+
+    #equipo-ia {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f1f1f1;
+      border-radius: 16px;
+      text-align: left;
+    }
+
+    #equipo-ia h2 {
+      text-align: center;
+    }
+
+    #equipo-ia li {
+      margin-bottom: 8px;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>Israel Jacob Arizmendi</h1>
+  <div class="contenedor">
 
-  <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
+    <h1>Israel Jacob Arizmendi</h1>
 
-  <button id="boton">🎙️ Hablar conmigo</button>
+    <p>
+      Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.
+    </p>
 
-  <p id="resultado">Toca el botón y habla.</p>
+    <button id="boton">
+      🎙️ Hablar conmigo
+    </button>
+
+    <p id="resultado">
+      Toca el botón y habla.
+    </p>
+
+    <div id="equipo-ia">
+
+      <h2>🤖 Equipo de IAs</h2>
+
+      <p>
+        Israel Jacob Arizmendi está preparando su equipo.
+      </p>
+
+      <ul>
+        <li>Rubén — Lenguaje</li>
+        <li>Simeón — Visión</li>
+        <li>Leví — Audio</li>
+        <li>Judá — Módulo especializado</li>
+        <li>Isacar — Módulo especializado</li>
+        <li>Zabulón — Módulo especializado</li>
+        <li>Neftalí — Módulo especializado</li>
+        <li>Gad — Módulo especializado</li>
+        <li>Aser — Módulo especializado</li>
+        <li>José — Módulo especializado</li>
+        <li>Benjamín — Módulo especializado</li>
+        <li>Efraín — Módulo especializado</li>
+        <li>Manasés — Módulo especializado</li>
+      </ul>
+
+    </div>
+
+  </div>
 
   <script>
 
@@ -50,6 +131,10 @@
 
 
     function hablar(texto) {
+
+      if (!("speechSynthesis" in window)) {
+        return;
+      }
 
       const mensaje =
         new SpeechSynthesisUtterance(texto);
@@ -88,6 +173,8 @@
       reconocimiento.interimResults = false;
 
 
+      boton.disabled = true;
+
       resultado.textContent =
         "🎤 Preparando el micrófono...";
 
@@ -104,48 +191,60 @@
 
         const texto =
           event.results[0][0].transcript;
-        
+
+
         resultado.textContent =
-  "Tú dijiste: " + texto +
-  "\n\n🤖 IJA está pensando...";
-
-fetch("https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec", {
-  method: "POST",
-  headers: {
-    "Content-Type": "text/plain;charset=utf-8"
-  },
-  body: JSON.stringify({
-    pregunta: texto
-  })
-})
-.then(respuesta => respuesta.json())
-.then(datos => {
-
-  if (!datos.ok) {
-    resultado.textContent =
-      "IJA encontró un problema: " +
-      (datos.error || "Error desconocido.");
-    return;
-  }
-
-  resultado.textContent =
-    "Tú dijiste: " + texto +
-    "\n\n🤖 IJA: " + datos.respuesta;
-
-  hablar(datos.respuesta);
-
-})
-.catch(error => {
-
-  resultado.textContent =
-    "ERROR REAL: " + error.message;
-
-});
+          "Tú dijiste: " + texto +
+          "\n\n🤖 IJA está pensando...";
 
 
-        hablar(
-          "Te escuché correctamente. Dijiste: " + texto
-        );
+        fetch(
+          "https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8UTHvCEm-sXx6zrwl5FnWTRONOBOaqb5s2t/exec",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "text/plain;charset=utf-8"
+            },
+
+            body: JSON.stringify({
+              pregunta: texto
+            })
+          }
+        )
+
+        .then(respuesta => respuesta.json())
+
+        .then(datos => {
+
+          if (!datos.ok) {
+
+            resultado.textContent =
+              "IJA encontró un problema: " +
+              (datos.error || "Error desconocido.");
+
+            return;
+          }
+
+
+          resultado.textContent =
+            "Tú dijiste: " + texto +
+            "\n\n🤖 IJA: " +
+            datos.respuesta;
+
+
+          hablar(datos.respuesta);
+
+        })
+
+        .catch(error => {
+
+          resultado.textContent =
+            "ERROR REAL: " +
+            error.message;
+
+        });
 
       };
 
@@ -160,6 +259,8 @@ fetch("https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8
 
 
       reconocimiento.onend = function () {
+
+        boton.disabled = false;
 
         console.log(
           "Reconocimiento de voz terminado."
@@ -176,6 +277,8 @@ fetch("https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8
 
       catch (error) {
 
+        boton.disabled = false;
+
         resultado.textContent =
           "No se pudo iniciar el micrófono.";
 
@@ -184,32 +287,6 @@ fetch("https://script.google.com/macros/s/AKfycbylrv7HOXCQ8uaOZcFmuvAg9FvNQrVYK8
     };
 
   </script>
-<div id="equipo-ia" style="margin-top:20px; padding:15px; background:#f1f1f1; border-radius:12px;">
-  <h2>🤖 Equipo de IAs</h2>
-  <p>Israel Jacob Arizmendi está preparando su equipo.</p>
 
-  <ul style="text-align:left;">
-    <li>Rubén — Lenguaje</li>
-    <li>Simeón — Visión</li>
-    <li>Leví — Audio</li>
-    <li>Judá — Módulo especializado</li>
-    <li>Isacar — Módulo especializado</li>
-    <li>Zabulón — Módulo especializado</li>
-    <li>Neftalí — Módulo especializado</li>
-    <li>Gad — Módulo especializado</li>
-    <li>Aser — Módulo especializado</li>
-    <li>José — Módulo especializado</li>
-    <li>Benjamín — Módulo especializado</li>
-    <li>Efraín — Módulo especializado</li>
-    <li>Manasés — Módulo especializado</li>
-  </ul>
-</div>
-  <div id="voz-ia" style="margin-top:20px; padding:20px; border-radius:16px; text-align:center;">
-  <button id="botonVoz" style="font-size:30px; padding:20px 30px; border-radius:50%;">
-    🎙️
-  </button>
-
-  <p id="estadoVoz">Pulsa el botón para hablar</p>
-  </div> 
 </body>
 </html>
