@@ -19,34 +19,30 @@
       margin-bottom: 10px;
     }
 
-    button {
+    p {
       font-size: 18px;
+    }
+
+    button {
+      font-size: 20px;
       padding: 15px 25px;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      margin: 10px;
+      margin-top: 20px;
     }
 
-    #hablar {
-      background: #222;
-      color: white;
-    }
-
-    #preguntar {
-      background: #555;
-      color: white;
+    #estado {
+      margin-top: 20px;
+      font-size: 16px;
     }
 
     #resultado {
       margin-top: 25px;
-      font-size: 18px;
-      min-height: 50px;
-    }
-
-    #estado {
-      margin-top: 15px;
-      font-size: 14px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      min-height: 40px;
     }
   </style>
 </head>
@@ -59,21 +55,50 @@
     Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.
   </p>
 
-  <button id="hablar">🎙️ Hablar conmigo</button>
+  <button id="botonHablar">
+    🎙️ Hablar conmigo
+  </button>
 
-  <p id="resultado">Toca el botón y habla.</p>
+  <p id="estado">
+    🔥 Preparando Firebase...
+  </p>
 
-  <p id="estado">🔥 Conectando con Firebase...</p>
+  <p id="resultado">
+    Toca el botón y habla.
+  </p>
+
+
+  <!-- ========================================================= -->
+  <!-- FIREBASE + APP CHECK                                      -->
+  <!-- ========================================================= -->
 
   <script type="module">
 
-    /* =========================================
-       FIREBASE + FIREBASE AI LOGIC
-       ========================================= */
+    /*
+      MODO DE PRUEBA
 
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+      Firebase recomienda el proveedor de depuración para
+      desarrollar y probar una aplicación cuando App Check
+      está aplicado.
+    */
 
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+
+
+    // Firebase
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+
+    // Firebase App Check
+    import {
+      initializeAppCheck,
+      ReCaptchaEnterpriseProvider
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check.js";
+
+
+    // Firebase AI Logic
     import {
       getAI,
       getGenerativeModel,
@@ -81,231 +106,394 @@
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-ai.js";
 
 
-    /* =========================================
-       CONFIGURACIÓN DE FIREBASE
-       ========================================= */
+    // =========================================================
+    // CONFIGURACIÓN DE FIREBASE
+    // =========================================================
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCTAnfjfn-fMqkQpvOK-1kVcz03efGEbnM",
-      authDomain: "israel-jacob-arizmendi.firebaseapp.com",
-      projectId: "israel-jacob-arizmendi",
-      storageBucket: "israel-jacob-arizmendi.firebasestorage.app",
-      messagingSenderId: "337930506802",
-      appId: "1:337930506802:web:00a701275a549fd260a22b",
-      measurementId: "G-JKJHZ0ZZ3F"
+
+      apiKey: "AIzaSyCTAnfjfn-mMqkQpvOK-1kVcz03efGEbnM",
+
+      authDomain:
+        "israel-jacob-arizmendi.firebaseapp.com",
+
+      projectId:
+        "israel-jacob-arizmendi",
+
+      storageBucket:
+        "israel-jacob-arizmendi.firebasestorage.app",
+
+      messagingSenderId:
+        "337930506802",
+
+      appId:
+        "1:337930506802:web:00a701275a549fd260a22b",
+
+      measurementId:
+        "G-JKJHZ0ZZ3F"
     };
 
 
-    /* =========================================
-       INICIAR FIREBASE
-       ========================================= */
+    // =========================================================
+    // INICIALIZAR FIREBASE
+    // =========================================================
 
     const firebaseApp = initializeApp(firebaseConfig);
 
 
-    /* =========================================
-       INICIAR FIREBASE AI LOGIC
-       ========================================= */
+    // =========================================================
+    // APP CHECK
+    // =========================================================
 
-    const ai = getAI(firebaseApp, {
-      backend: new GoogleAIBackend()
-    });
+    /*
+      IMPORTANTE:
+
+      Para producción necesitaremos la clave real de
+      reCAPTCHA Enterprise / Fraud Defense.
+
+      Por ahora dejamos preparado el modo de depuración.
+    */
+
+    let appCheck;
+
+    try {
+
+      /*
+        NO pongas una clave inventada aquí.
+
+        Cuando tengamos la clave real de reCAPTCHA Enterprise,
+        se colocará aquí.
+      */
+
+      const RECAPTCHA_SITE_KEY = "";
+
+      if (RECAPTCHA_SITE_KEY) {
+
+        appCheck = initializeAppCheck(firebaseApp, {
+
+          provider:
+            new ReCaptchaEnterpriseProvider(
+              RECAPTCHA_SITE_KEY
+            ),
+
+          isTokenAutoRefreshEnabled: true
+        });
+
+        console.log("✅ App Check configurado.");
+
+      } else {
+
+        console.log(
+          "🧪 App Check está preparado para modo de prueba."
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Error al preparar App Check:",
+        error
+      );
+
+    }
 
 
-    /* =========================================
-       MODELO PRINCIPAL
-       ========================================= */
+    // =========================================================
+    // FIREBASE AI LOGIC
+    // =========================================================
 
-    const model = getGenerativeModel(ai, {
-      model: "gemini-3.8-flash"
-    });
+    let model;
 
+    try {
 
-    /* =========================================
-       ELEMENTOS DE LA PÁGINA
-       ========================================= */
+      const ai = getAI(firebaseApp, {
 
-    const botonHablar = document.getElementById("hablar");
-    const resultado = document.getElementById("resultado");
-    const estado = document.getElementById("estado");
+        backend:
+          new GoogleAIBackend()
+
+      });
 
 
-    estado.textContent = "🔥 Firebase conectado. IJA está preparado.";
+      model = getGenerativeModel(ai, {
+
+        model: "gemini-3.8-flash"
+
+      });
 
 
-    /* =========================================
-       REGLAS CENTRALES DE IJA
-       ========================================= */
+      document.getElementById("estado").textContent =
+        "🔥 Firebase conectado. IJA está preparado.";
+
+    } catch (error) {
+
+      console.error(error);
+
+      document.getElementById("estado").textContent =
+        "⚠️ Firebase necesita configuración.";
+
+    }
+
+
+    // =========================================================
+    // LAS 16 INTELIGENCIAS DEL PROYECTO
+    // =========================================================
 
     const reglasIJA = `
-Eres Israel Jacob Arizmendi, conocido públicamente como IJA.
 
-Eres la inteligencia artificial central y coordinadora
-de una arquitectura de 16 inteligencias artificiales.
+    Eres Israel Jacob Arizmendi, conocido públicamente como IJA.
 
-Tu función es coordinar los diferentes nodos especializados
-cuando sea necesario.
+    Eres la inteligencia artificial central y coordinadora
+    de una aplicación formada por 16 inteligencias artificiales.
 
-Las 16 inteligencias artificiales del proyecto son:
+    IA CENTRAL:
+    1. Israel Jacob Arizmendi — IJA
 
-1. IJA / Israel Jacob Arizmendi
-2. Rubén Arizmendi
-3. Simeón Arizmendi
-4. Leví Arizmendi
-5. Judá Arizmendi
-6. Isacar Arizmendi
-7. Zabulón Arizmendi
-8. Neftalí Arizmendi
-9. Gad Arizmendi
-10. Aser Arizmendi
-11. José Arizmendi
-12. Benjamín Arizmendi
-13. Efraín Arizmendi
-14. Manasés Arizmendi
-15. Lea Arizmendi
-16. Raquel Arizmendi
+    NODOS:
+    2. Rubén Arizmendi
+    3. Simeón Arizmendi
+    4. Leví Arizmendi
+    5. Judá Arizmendi
+    6. Isacar Arizmendi
+    7. Zabulón Arizmendi
+    8. Neftalí Arizmendi
+    9. Gad Arizmendi
+    10. Aser Arizmendi
+    11. José Arizmendi
+    12. Benjamín Arizmendi
+    13. Efraín Arizmendi
+    14. Manasés Arizmendi
+    15. Lea Arizmendi
+    16. Raquel Arizmendi
 
-Dan NO forma parte del proyecto.
+    Son 16 inteligencias en total.
 
-Debes respetar las reglas de seguridad, privacidad,
-legalidad y protección del usuario.
+    Dan NO forma parte del proyecto.
 
-No debes inventar que un nodo realizó una tarea
-si todavía no está técnicamente conectado.
+    IJA coordina los demás nodos.
 
-Si una función todavía no está disponible,
-debes decirlo claramente.
+    Todas deben respetar las reglas de seguridad,
+    privacidad, legalidad y protección del usuario.
 
-Tu objetivo es coordinar progresivamente
-los 15 nodos subordinados y trabajar como
-un único sistema integrado.
-`;
+    No inventes funciones que todavía no estén implementadas.
+
+    Responde en español salvo que el usuario solicite otro idioma.
+
+    `;
 
 
-    /* =========================================
-       FUNCIÓN PRINCIPAL DE IJA
-       ========================================= */
+    // =========================================================
+    // FUNCIÓN PARA PREGUNTAR A IJA
+    // =========================================================
 
     async function preguntarIJA(pregunta) {
 
-      resultado.textContent = "🤖 IJA está pensando...";
+      if (!model) {
+
+        return "Firebase todavía no está preparado.";
+
+      }
+
+
+      const prompt = `
+
+      ${reglasIJA}
+
+      Usuario:
+      ${pregunta}
+
+      IJA:
+
+      `;
+
 
       try {
 
-        const prompt = `
-${reglasIJA}
+        const result =
+          await model.generateContent(prompt);
 
-Solicitud del usuario:
 
-${pregunta}
+        const response =
+          result.response;
 
-Responde en español de forma clara y útil.
-`;
 
-        const result = await model.generateContent(prompt);
+        const texto =
+          response.text();
 
-        const response = result.response;
 
-        const texto = response.text();
-
-        resultado.textContent = "🤖 IJA: " + texto;
-
-        hablar(texto);
+        return texto;
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          "Error de IJA:",
+          error
+        );
 
-        resultado.textContent =
-          "⚠️ IJA: No pude completar la respuesta. " +
-          error.message;
+
+        return (
+          "IJA: No pude completar la respuesta. " +
+          "Estamos terminando la configuración de seguridad de Firebase."
+        );
+
       }
     }
 
 
-    /* =========================================
-       VOZ DE IJA
-       ========================================= */
-
-    function hablar(texto) {
-
-      if ("speechSynthesis" in window) {
-
-        window.speechSynthesis.cancel();
-
-        const mensaje =
-          new SpeechSynthesisUtterance(texto);
-
-        mensaje.lang = "es-ES";
-        mensaje.rate = 1;
-        mensaje.pitch = 1;
-
-        window.speechSynthesis.speak(mensaje);
-      }
-    }
-
-
-    /* =========================================
-       RECONOCIMIENTO DE VOZ
-       ========================================= */
+    // =========================================================
+    // RECONOCIMIENTO DE VOZ
+    // =========================================================
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
 
+    const boton =
+      document.getElementById("botonHablar");
+
+
+    const resultado =
+      document.getElementById("resultado");
+
+
     if (!SpeechRecognition) {
 
+      boton.disabled = true;
+
       resultado.textContent =
-        "⚠️ Este navegador no admite reconocimiento de voz.";
+        "Tu navegador no permite reconocimiento de voz.";
 
     } else {
 
       const reconocimiento =
         new SpeechRecognition();
 
-      reconocimiento.lang = "es-ES";
-      reconocimiento.continuous = false;
-      reconocimiento.interimResults = false;
+
+      reconocimiento.lang =
+        "es-ES";
 
 
-      botonHablar.addEventListener("click", () => {
-
-        resultado.textContent =
-          "🎙️ IJA está escuchando...";
-
-        reconocimiento.start();
-
-      });
+      reconocimiento.continuous =
+        false;
 
 
-      reconocimiento.onresult = (evento) => {
+      reconocimiento.interimResults =
+        false;
 
-        const texto =
-          evento.results[0][0].transcript;
+
+      reconocimiento.onstart = function() {
+
+        boton.textContent =
+          "🎙️ Escuchando...";
 
         resultado.textContent =
-          "🗣️ Tú: " + texto;
-
-        preguntarIJA(texto);
+          "Te estoy escuchando.";
 
       };
 
 
-      reconocimiento.onerror = (evento) => {
+      reconocimiento.onresult =
+        async function(event) {
 
-        resultado.textContent =
-          "⚠️ Error del micrófono: " +
-          evento.error;
-
-      };
+          const texto =
+            event.results[0][0].transcript;
 
 
-      reconocimiento.onend = () => {
+          resultado.textContent =
+            "Tú: " + texto;
 
-        console.log("Reconocimiento de voz finalizado.");
 
-      };
+          boton.textContent =
+            "⏳ Pensando...";
+
+
+          const respuesta =
+            await preguntarIJA(texto);
+
+
+          resultado.textContent =
+            "IJA: " + respuesta;
+
+
+          boton.textContent =
+            "🎙️ Hablar conmigo";
+
+
+          hablar(respuesta);
+
+        };
+
+
+      reconocimiento.onerror =
+        function(event) {
+
+          console.error(event.error);
+
+
+          resultado.textContent =
+            "No pude escuchar correctamente. " +
+            "Inténtalo nuevamente.";
+
+
+          boton.textContent =
+            "🎙️ Hablar conmigo";
+
+        };
+
+
+      reconocimiento.onend =
+        function() {
+
+          boton.textContent =
+            "🎙️ Hablar conmigo";
+
+        };
+
+
+      boton.onclick =
+        function() {
+
+          reconocimiento.start();
+
+        };
+
+    }
+
+
+    // =========================================================
+    // VOZ DE IJA
+    // =========================================================
+
+    function hablar(texto) {
+
+      if (!("speechSynthesis" in window)) {
+
+        return;
+
+      }
+
+
+      window.speechSynthesis.cancel();
+
+
+      const voz =
+        new SpeechSynthesisUtterance(texto);
+
+
+      voz.lang =
+        "es-ES";
+
+
+      voz.rate =
+        1;
+
+
+      voz.pitch =
+        1;
+
+
+      window.speechSynthesis.speak(voz);
 
     }
 
