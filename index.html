@@ -9,119 +9,42 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
       margin: 0;
-      background: #f4f6f8;
-      color: #111;
+      background: #f5f5f5;
     }
 
     .contenedor {
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .encabezado {
-      background: white;
-      padding: 25px;
-      border-radius: 20px;
-      text-align: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     h1 {
-      margin: 0 0 10px 0;
+      margin-bottom: 10px;
     }
 
-    .subtitulo {
-      color: #555;
-      font-size: 16px;
+    p {
+      font-size: 18px;
     }
 
-    #boton {
-      font-size: 20px;
+    button {
+      font-size: 18px;
       padding: 15px 25px;
-      border-radius: 14px;
       border: none;
+      border-radius: 12px;
       cursor: pointer;
-      margin-top: 15px;
-      background: #222;
-      color: white;
-    }
-
-    #boton:disabled {
-      opacity: 0.6;
+      margin-top: 20px;
     }
 
     #resultado {
-      margin-top: 20px;
-      font-size: 18px;
-      white-space: pre-line;
-      text-align: left;
-      padding: 15px;
-      border-radius: 14px;
-      background: #f1f1f1;
+      margin-top: 25px;
+      min-height: 40px;
     }
 
-    .seccion {
-      background: white;
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 18px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-    }
-
-    .seccion h2 {
-      margin-top: 0;
-    }
-
-    .tarjetas {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .tarjeta {
-      background: #f1f3f5;
-      padding: 18px;
-      border-radius: 15px;
-      text-align: center;
-      font-size: 16px;
-    }
-
-    .tarjeta strong {
-      display: block;
-      font-size: 18px;
-      margin-bottom: 6px;
-    }
-
-    .noticia {
-      padding: 15px;
-      background: #f1f3f5;
-      border-radius: 14px;
-      margin-top: 12px;
-    }
-
-    .noticia strong {
-      display: block;
-      margin-bottom: 7px;
-    }
-
-    .estado {
+    #estado {
       font-size: 14px;
-      color: #666;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px 10px;
-      color: #777;
-      font-size: 14px;
-    }
-
-    @media (max-width: 600px) {
-      .tarjetas {
-        grid-template-columns: 1fr;
-      }
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -130,221 +53,134 @@
 
   <div class="contenedor">
 
-    <div class="encabezado">
+    <h1>Israel Jacob Arizmendi</h1>
 
-      <h1>Israel Jacob Arizmendi</h1>
+    <p>
+      Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.
+    </p>
 
-      <p class="subtitulo">
-        Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.
-      </p>
+    <button id="botonHablar">
+      🎙️ Hablar conmigo
+    </button>
 
-      <button id="boton">
-        🎙️ Hablar conmigo
-      </button>
+    <p id="resultado">
+      Toca el botón y habla.
+    </p>
 
-      <p id="resultado">
-        Toca el botón y habla.
-      </p>
-
-    </div>
-
-
-    <!-- ÁREAS PRINCIPALES -->
-
-    <div class="seccion">
-
-      <h2>🌐 IJA</h2>
-
-      <div class="tarjetas">
-
-        <div class="tarjeta">
-          <strong>🤖 IJA</strong>
-          Asistente principal
-        </div>
-
-        <div class="tarjeta">
-          <strong>💬 Mensajes</strong>
-          Comunicación
-        </div>
-
-        <div class="tarjeta">
-          <strong>📞 Llamadas</strong>
-          Voz y video
-        </div>
-
-        <div class="tarjeta">
-          <strong>📰 Noticias</strong>
-          Información actual
-        </div>
-
-        <div class="tarjeta">
-          <strong>🎬 Video</strong>
-          Contenido audiovisual
-        </div>
-
-        <div class="tarjeta">
-          <strong>🎵 Audio</strong>
-          Contenido de audio
-        </div>
-
-        <div class="tarjeta">
-          <strong>🎮 Juegos</strong>
-          Entretenimiento
-        </div>
-
-        <div class="tarjeta">
-          <strong>🎓 Educación</strong>
-          Aprendizaje
-        </div>
-
-        <div class="tarjeta">
-          <strong>🛍️ Comercio</strong>
-          Productos y servicios
-        </div>
-
-        <div class="tarjeta">
-          <strong>💼 Profesionales</strong>
-          Herramientas de trabajo
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- CANAL DE NOTICIAS -->
-
-    <div class="seccion">
-
-      <h2>📰 Noticias</h2>
-
-      <p>
-        Este será el espacio informativo de la aplicación.
-      </p>
-
-      <div class="noticia">
-
-        <strong>🔴 Últimas noticias</strong>
-
-        <span class="estado">
-          El sistema de noticias se conectará posteriormente
-          a fuentes verificadas y actualizará la información
-          de acuerdo con la programación establecida.
-        </span>
-
-      </div>
-
-      <div class="noticia">
-
-        <strong>🌎 Noticias nacionales e internacionales</strong>
-
-        <span class="estado">
-          Política, tecnología, economía, deportes, educación,
-          ciencia, entretenimiento, empresas y otros temas.
-        </span>
-
-      </div>
-
-      <div class="noticia">
-
-        <strong>📱 Contenido para redes sociales</strong>
-
-        <span class="estado">
-          Preparación de publicaciones, videos cortos,
-          titulares y contenido audiovisual para las
-          plataformas correspondientes.
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <!-- EQUIPO DE IAs -->
-
-    <div class="seccion">
-
-      <h2>🤖 Equipo de IAs</h2>
-
-      <p>
-        Israel Jacob Arizmendi coordinará diferentes módulos
-        especializados para trabajar dentro de la aplicación.
-      </p>
-
-      <ul>
-
-        <li>Rubén — Lenguaje</li>
-        <li>Simeón — Visión</li>
-        <li>Leví — Audio</li>
-        <li>Judá — Módulo especializado</li>
-        <li>Isacar — Módulo especializado</li>
-        <li>Zabulón — Módulo especializado</li>
-        <li>Neftalí — Módulo especializado</li>
-        <li>Gad — Módulo especializado</li>
-        <li>Aser — Módulo especializado</li>
-        <li>José — Módulo especializado</li>
-        <li>Benjamín — Módulo especializado</li>
-        <li>Efraín — Módulo especializado</li>
-        <li>Manasés — Módulo especializado</li>
-
-      </ul>
-
-    </div>
-
-
-    <!-- FUTURAS FUNCIONES -->
-
-    <div class="seccion">
-
-      <h2>🚀 Próximamente</h2>
-
-      <div class="tarjetas">
-
-        <div class="tarjeta">
-          🔎 Navegador y búsqueda
-        </div>
-
-        <div class="tarjeta">
-          📺 Contenido audiovisual
-        </div>
-
-        <div class="tarjeta">
-          🏪 Proveedores internacionales
-        </div>
-
-        <div class="tarjeta">
-          💳 Servicios financieros
-        </div>
-
-        <div class="tarjeta">
-          🛡️ Seguridad
-        </div>
-
-        <div class="tarjeta">
-          📢 Marketing
-        </div>
-
-      </div>
-
-    </div>
+    <p id="estado">
+      Conectando con Firebase...
+    </p>
 
   </div>
 
+  <!-- Firebase -->
+  <script type="module">
 
-  <footer>
-    Israel Jacob Arizmendi — IJA
-  </footer>
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+    import {
+      getAnalytics
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
 
 
-  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTAnfjfn-fMqkQpvOK-1kVcz03efGEbnM",
+      authDomain: "israel-jacob-arizmendi.firebaseapp.com",
+      projectId: "israel-jacob-arizmendi",
+      storageBucket: "israel-jacob-arizmendi.firebasestorage.app",
+      messagingSenderId: "337930506802",
+      appId: "1:337930506802:web:61fa5a7ea1ee365060a22b",
+      measurementId: "G-560KK3ZX8P"
+    };
 
-    const boton = document.getElementById("boton");
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+
+    // Analytics
+    const analytics = getAnalytics(app);
+
+    document.getElementById("estado").textContent =
+      "✅ Firebase está conectado correctamente.";
+
+
+    // ==========================================
+    // RECONOCIMIENTO DE VOZ
+    // ==========================================
+
+    const boton = document.getElementById("botonHablar");
     const resultado = document.getElementById("resultado");
 
-    const Reconocimiento =
+    const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
+    if (!SpeechRecognition) {
+
+      resultado.textContent =
+        "Tu navegador no permite reconocimiento de voz.";
+
+      boton.disabled = true;
+
+    } else {
+
+      const reconocimiento = new SpeechRecognition();
+
+      reconocimiento.lang = "es-ES";
+      reconocimiento.continuous = false;
+      reconocimiento.interimResults = false;
+
+
+      boton.addEventListener("click", () => {
+
+        resultado.textContent =
+          "🎙️ Te estoy escuchando...";
+
+        reconocimiento.start();
+
+      });
+
+
+      reconocimiento.onresult = (evento) => {
+
+        const texto =
+          evento.results[0][0].transcript;
+
+        resultado.textContent =
+          "🤖 IJA: Te escuché correctamente: " + texto;
+
+        hablar(
+          "Te escuché correctamente."
+        );
+
+      };
+
+
+      reconocimiento.onerror = (evento) => {
+
+        resultado.textContent =
+          "No pude escuchar correctamente. Inténtalo nuevamente.";
+
+        console.log("Error de voz:", evento.error);
+
+      };
+
+
+      reconocimiento.onend = () => {
+
+        console.log("Reconocimiento de voz terminado.");
+
+      };
+
+    }
+
+
+    // ==========================================
+    // VOZ DE IJA
+    // ==========================================
 
     function hablar(texto) {
 
@@ -356,151 +192,12 @@
         new SpeechSynthesisUtterance(texto);
 
       mensaje.lang = "es-ES";
-
-      window.speechSynthesis.cancel();
+      mensaje.rate = 1;
+      mensaje.pitch = 1;
 
       window.speechSynthesis.speak(mensaje);
+
     }
-
-
-    boton.onclick = function () {
-
-      if (!Reconocimiento) {
-
-        resultado.textContent =
-          "Tu navegador no permite reconocimiento de voz.";
-
-        hablar(
-          "Tu navegador no permite reconocimiento de voz."
-        );
-
-        return;
-      }
-
-
-      const reconocimiento =
-        new Reconocimiento();
-
-
-      reconocimiento.lang = "es-ES";
-
-      reconocimiento.continuous = false;
-
-      reconocimiento.interimResults = false;
-
-
-      boton.disabled = true;
-
-      resultado.textContent =
-        "🎤 Preparando el micrófono...";
-
-
-      reconocimiento.onstart = function () {
-
-        resultado.textContent =
-          "🎤 Te estoy escuchando. Habla ahora.";
-
-      };
-
-
-      reconocimiento.onresult = function (event) {
-
-        const texto =
-          event.results[0][0].transcript;
-
-
-        resultado.textContent =
-          "Tú dijiste: " + texto +
-          "\n\n🤖 IJA está pensando...";
-
-
-        fetch(
-          "https://script.google.com/macros/s/AKfycbwd3xJsNeDLpLe_ZdQ5ryV3g7sDhPqgsVcq00BtPD8F7jPGk_rW7FL8F5J4iJIIecjt/exec",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "text/plain;charset=utf-8"
-            },
-
-            body: JSON.stringify({
-              pregunta: texto
-            })
-          }
-        )
-
-        .then(respuesta => respuesta.json())
-
-        .then(datos => {
-
-          if (!datos.ok) {
-
-            resultado.textContent =
-              "IJA encontró un problema: " +
-              (datos.error || "Error desconocido.");
-
-            return;
-          }
-
-
-          resultado.textContent =
-            "Tú dijiste: " + texto +
-            "\n\n🤖 IJA: " +
-            datos.respuesta;
-
-
-          hablar(datos.respuesta);
-
-        })
-
-        .catch(error => {
-
-          resultado.textContent =
-            "ERROR REAL: " +
-            error.message;
-
-        });
-
-      };
-
-
-      reconocimiento.onerror = function (event) {
-
-        resultado.textContent =
-          "Error del micrófono: " +
-          event.error;
-
-      };
-
-
-      reconocimiento.onend = function () {
-
-        boton.disabled = false;
-
-        console.log(
-          "Reconocimiento de voz terminado."
-        );
-
-      };
-
-
-      try {
-
-        reconocimiento.start();
-
-      }
-
-      catch (error) {
-
-        boton.disabled = false;
-
-        resultado.textContent =
-          "No se pudo iniciar el micrófono.";
-
-      }
-
-    };
 
   </script>
 
