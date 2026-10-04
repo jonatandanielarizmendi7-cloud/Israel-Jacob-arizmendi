@@ -302,7 +302,49 @@
 
       };
 
-      reconocimiento.onresult = function(event) {
+  reconocimiento.onresult = function(event) {
+
+  let resultado = "";
+
+  for (
+    let i = event.resultIndex;
+    i < event.results.length;
+    i++
+  ) {
+
+    resultado +=
+      event.results[i][0].transcript + " ";
+
+  }
+
+  resultado = resultado.trim();
+
+  console.log(
+    "Next escuchó:",
+    resultado
+  );
+
+  const textoEscuchado =
+    resultado.toLowerCase();
+
+  if (
+    textoEscuchado.includes("next")
+  ) {
+
+    entrarModoVoz();
+
+    estadoVoz.textContent =
+      "Sí, te escucho.";
+
+    hablar(
+      "Sí, te escucho. ¿En qué puedo ayudarte?"
+    );
+
+    return;
+
+  }
+
+};
 
         const resultado =
           event.results[0][0].transcript;
