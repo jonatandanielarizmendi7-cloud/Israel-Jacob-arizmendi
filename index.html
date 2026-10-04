@@ -20,6 +20,11 @@
       margin-bottom: 10px;
     }
 
+    p {
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
     button {
       padding: 15px 25px;
       font-size: 18px;
@@ -32,6 +37,7 @@
 
     button:disabled {
       opacity: 0.6;
+      cursor: not-allowed;
     }
 
     #resultado {
@@ -40,6 +46,8 @@
       background: white;
       border-radius: 12px;
       min-height: 50px;
+      text-align: left;
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -48,9 +56,13 @@
 
   <h1>Israel Jacob Arizmendi</h1>
 
-  <p>Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.</p>
+  <p>
+    Hola. Soy Israel Jacob Arizmendi, tu inteligencia artificial.
+  </p>
 
-  <button id="hablar">🎙️ Hablar conmigo</button>
+  <button id="hablar">
+    🎙️ Hablar conmigo
+  </button>
 
   <div id="resultado">
     Toca el botón y habla.
@@ -58,123 +70,261 @@
 
   <script>
 
+    /*
+      CONEXIÓN CON EL SERVIDOR
+      ------------------------
+      Esta es la dirección de tu Apps Script.
+      Se corrigió la comilla extra que tenía el archivo anterior.
+    */
+
     const URL_APPS_SCRIPT =
-  "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";";
+      "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
+
 
     const boton = document.getElementById("hablar");
     const resultado = document.getElementById("resultado");
+
+
+    /*
+      RECONOCIMIENTO DE VOZ
+      ---------------------
+      Chrome/Android normalmente utiliza webkitSpeechRecognition.
+    */
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
+
     if (!SpeechRecognition) {
 
       resultado.textContent =
-        "Este navegador no admite reconocimiento de voz.";
+        "Este navegador no admite reconocimiento de voz. " +
+        "Prueba con Google Chrome.";
+
+      boton.disabled = true;
 
     } else {
 
       const reconocimiento = new SpeechRecognition();
 
       reconocimiento.lang = "es-ES";
+
       reconocimiento.continuous = false;
+
       reconocimiento.interimResults = false;
+
+
+      /*
+        CUANDO EL USUARIO PULSA EL BOTÓN
+      */
 
       boton.addEventListener("click", function () {
 
-        resultado.textContent = "🎧 Escuchando...";
+        try {
 
-        boton.disabled = true;
+          resultado.textContent =
+            "🎧 Escuchando... Habla ahora.";
 
-        reconocimiento.start();
+          boton.disabled = true;
+
+          reconocimiento.start();
+
+        } catch (error) {
+
+          resultado.textContent =
+            "No se pudo iniciar el micrófono. " +
+            "Vuelve a tocar el botón.";
+
+          boton.disabled = false;
+
+        }
 
       });
+
+
+      /*
+        CUANDO EL RECONOCIMIENTO DE VOZ TERMINA
+      */
 
       reconocimiento.onresult = async function (evento) {
 
         const mensaje =
           evento.results[0][0].transcript;
 
+
         resultado.textContent =
-          "🤖 IJA está pensando...";
+          "📝 Escuché: " + mensaje +
+          "\n\n🤖 IJA está pensando...";
+
 
         try {
 
-          const respuesta = await fetch(URL_APPS_SCRIPT, {
+          /*
+            ENVIAMOS EL DICTADO A IJA
+          */
 
-            method: "POST",
+          const respuesta = await fetch(
+            URL_APPS_SCRIPT,
+            {
+              method: "POST",
 
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
+              headers: {
+                "Content-Type":
+                  "text/plain;charset=utf-8"
+              },
 
-            body: JSON.stringify({
-              mensaje: mensaje,
-              sistema: "IJA"
-            })
+              body: JSON.stringify({
 
-          });
+                mensaje: mensaje,
 
-          const datos = await respuesta.json();
+                sistema: "IJA"
+
+              })
+
+            }
+          );
+
+
+          /*
+            CONVERTIMOS LA RESPUESTA A JSON
+          */
+
+          const datos =
+            await respuesta.json();
+
+
+          /*
+            RESPUESTA CORRECTA
+          */
 
           if (datos.success) {
 
-            resultado.textContent =
-              "🤖 IJA: " + datos.respuesta;
+            const textoRespuesta =
+              datos.respuesta ||
+              "IJA recibió tu mensaje.";
 
-            hablar(datos.respuesta);
+            resultado.textContent =
+              "🤖 IJA: " +
+              textoRespuesta;
+
+            hablar(textoRespuesta);
+
 
           } else {
 
+            /*
+              ERROR DEVUELTO POR EL SERVIDOR
+            */
+
             resultado.textContent =
-              "IJA encontró un problema: " +
-              (datos.error || "Error desconocido.");
+              "⚠️ IJA encontró un problema:\n\n" +
+              (
+                datos.error ||
+                "Error desconocido."
+              );
 
           }
 
+
         } catch (error) {
 
+          /*
+            ERROR DE CONEXIÓN
+          */
+
           resultado.textContent =
-            "Error de conexión con IJA: " +
+            "⚠️ Error de conexión con IJA:\n\n" +
             error.message;
 
         }
 
-        boton.disabled = false;
-
-      };
-
-      reconocimiento.onerror = function (evento) {
-
-        resultado.textContent =
-          "Error del micrófono: " + evento.error;
 
         boton.disabled = false;
 
       };
 
-      reconocimiento.onend = function () {
 
-        boton.disabled = false;
+      /*
+        ERROR DEL MICRÓFONO
+      */
 
-      };
+      reconocimiento.onerror =
+        function (evento) {
+
+          let mensajeError =
+            "Error del micrófono.";
+
+          if (evento.error === "not-allowed") {
+
+            mensajeError =
+              "⚠️ Permiso del micrófono denegado. " +
+              "Permite el micrófono en Chrome.";
+
+          } else if (evento.error === "no-speech") {
+
+            mensajeError =
+              "⚠️ No detecté tu voz. " +
+              "Vuelve a intentarlo.";
+
+          } else {
+
+            mensajeError =
+              "⚠️ Error del micrófono: " +
+              evento.error;
+
+          }
+
+          resultado.textContent =
+            mensajeError;
+
+          boton.disabled = false;
+
+        };
+
+
+      /*
+        CUANDO TERMINA EL RECONOCIMIENTO
+      */
+
+      reconocimiento.onend =
+        function () {
+
+          boton.disabled = false;
+
+        };
 
     }
 
+
+    /*
+      FUNCIÓN PARA QUE IJA HABLE
+    */
+
     function hablar(texto) {
 
-      if (!("speechSynthesis" in window)) {
+      if (
+        !("speechSynthesis" in window)
+      ) {
+
         return;
+
       }
+
 
       window.speechSynthesis.cancel();
 
-      const voz = new SpeechSynthesisUtterance(texto);
+
+      const voz =
+        new SpeechSynthesisUtterance(texto);
+
 
       voz.lang = "es-ES";
+
       voz.rate = 1;
+
       voz.pitch = 1;
+
 
       window.speechSynthesis.speak(voz);
 
@@ -183,4 +333,4 @@
   </script>
 
 </body>
-    </html>
+  </html>
