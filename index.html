@@ -73,4 +73,584 @@
       background: white;
       border-radius: 28px;
       padding: 7px;
-      box-shadow
+      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+    }
+
+    #texto {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      padding: 10px;
+      background: transparent;
+    }
+
+    .boton {
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .microfono {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #222;
+      color: white;
+      font-size: 21px;
+    }
+
+    .microfono.escuchando {
+      background: #d62828;
+      transform: scale(1.08);
+    }
+
+    .enviar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #222;
+      color: white;
+      font-size: 22px;
+    }
+
+    .modoVoz {
+      position: fixed;
+      inset: 0;
+      background: #f5f5f5;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modoVoz.activo {
+      display: flex;
+    }
+
+    .tituloVoz {
+      position: absolute;
+      top: 30px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .avatar {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: #e1e1e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 70px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+
+    .avatar.escuchando {
+      transform: scale(1.08);
+      box-shadow: 0 0 0 15px rgba(0,0,0,0.05),
+                  0 8px 30px rgba(0,0,0,0.15);
+    }
+
+    .avatar.hablando {
+      animation: hablar 0.8s infinite alternate;
+    }
+
+    @keyframes hablar {
+      from {
+        transform: scale(1);
+      }
+
+      to {
+        transform: scale(1.06);
+      }
+    }
+
+    .estadoVoz {
+      margin-top: 35px;
+      font-size: 18px;
+      min-height: 25px;
+      text-align: center;
+    }
+
+    .botonSalir {
+      position: absolute;
+      bottom: 35px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      background: #222;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <div class="encabezado">
+      Next
+    </div>
+
+    <div id="chat" class="chat"></div>
+
+    <div class="zonaEntrada">
+      <div class="entrada">
+
+        <button
+          id="botonMicrofono"
+          class="boton microfono"
+          onclick="alternarMicrofono()">
+          🎙️
+        </button>
+
+        <input
+          id="texto"
+          type="text"
+          placeholder="Escribe o habla con Next..."
+          autocomplete="off">
+
+        <button
+          class="boton enviar"
+          onclick="enviarMensaje()">
+          ➤
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- MODO DE CONVERSACIÓN POR VOZ -->
+
+  <div id="modoVoz" class="modoVoz">
+
+    <div class="tituloVoz">
+      Next
+    </div>
+
+    <div
+      id="avatar"
+      class="avatar">
+      N
+    </div>
+
+    <div
+      id="estadoVoz"
+      class="estadoVoz">
+      Toca el micrófono para hablar
+    </div>
+
+    <button
+      class="botonSalir"
+      onclick="salirModoVoz()">
+      ✕
+    </button>
+
+  </div>
+
+
+  <script>
+
+    let reconocimiento = null;
+    let escuchando = false;
+    let modoConversacion = false;
+
+    const texto = document.getElementById("texto");
+    const chat = document.getElementById("chat");
+    const botonMicrofono = document.getElementById("botonMicrofono");
+    const modoVoz = document.getElementById("modoVoz");
+    const avatar = document.getElementById("avatar");
+    const estadoVoz = document.getElementById("estadoVoz");
+
+
+    /* ---------------------------------
+       RECONOCIMIENTO DE VOZ
+    --------------------------------- */
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+
+      reconocimiento = new SpeechRecognition();
+
+      reconocimiento.lang = "es-ES";
+      reconocimiento.continuous = false;
+      reconocimiento.interimResults = false;
+
+      reconocimiento.onstart = function() {
+
+        escuchando = true;
+
+        botonMicrofono.classList.add("escuchando");
+
+        if (modoConversacion) {
+
+          avatar.classList.add("escuchando");
+
+          estadoVoz.textContent =
+            "Te estoy escuchando...";
+
+        }
+
+      };
+
+
+      reconocimiento.onresult = function(event) {
+
+        const resultado =
+          event.results[0][0].transcript;
+
+        texto.value = resultado;
+
+        console.log("Voz:", resultado);
+
+        /*
+          Si la persona dice NEXT,
+          intentamos entrar automáticamente
+          al modo conversación.
+        */
+
+        const mensajeMinuscula =
+          resultado.toLowerCase();
+
+        if (
+          mensajeMinuscula.includes("next")
+        ) {
+
+          entrarModoVoz();
+
+        }
+
+      };
+
+
+      reconocimiento.onend = function() {
+
+        escuchando = false;
+
+        botonMicrofono.classList.remove("escuchando");
+
+        avatar.classList.remove("escuchando");
+
+        if (modoConversacion) {
+
+          estadoVoz.textContent =
+            "Te escucho cuando quieras.";
+
+        }
+
+      };
+
+
+      reconocimiento.onerror = function(event) {
+
+        console.log(
+          "Error de voz:",
+          event.error
+        );
+
+        escuchando = false;
+
+        botonMicrofono.classList.remove("escuchando");
+
+        avatar.classList.remove("escuchando");
+
+        if (modoConversacion) {
+
+          estadoVoz.textContent =
+            "No pude escucharte. Toca para intentar nuevamente.";
+
+        }
+
+      };
+
+    }
+
+
+    /* ---------------------------------
+       MICRÓFONO
+    --------------------------------- */
+
+    function alternarMicrofono() {
+
+      if (!reconocimiento) {
+
+        alert(
+          "Este navegador no permite reconocimiento de voz."
+        );
+
+        return;
+
+      }
+
+      if (escuchando) {
+
+        reconocimiento.stop();
+
+      } else {
+
+        try {
+
+          reconocimiento.start();
+
+        } catch (error) {
+
+          console.log(error);
+
+        }
+
+      }
+
+    }
+
+
+    /* ---------------------------------
+       ENVIAR MENSAJE
+    --------------------------------- */
+
+    function enviarMensaje() {
+
+      const mensaje =
+        texto.value.trim();
+
+      if (!mensaje) {
+        return;
+      }
+
+      agregarMensaje(
+        "Tú",
+        mensaje,
+        "usuario"
+      );
+
+      texto.value = "";
+
+      /*
+        Respuesta provisional.
+        Después conectaremos aquí
+        el verdadero cerebro de IJA.
+      */
+
+      const respuesta =
+        "Hola. Soy IJA. Te escuché correctamente.";
+
+      agregarMensaje(
+        "IJA",
+        respuesta,
+        "ija"
+      );
+
+      hablar(respuesta);
+
+    }
+
+
+    /* ---------------------------------
+       MOSTRAR MENSAJES
+    --------------------------------- */
+
+    function agregarMensaje(
+      nombre,
+      contenido,
+      clase
+    ) {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "mensaje " + clase;
+
+      div.innerHTML =
+        "<strong>" +
+        nombre +
+        ":</strong> " +
+        contenido;
+
+      chat.appendChild(div);
+
+      chat.scrollTop =
+        chat.scrollHeight;
+
+    }
+
+
+    /* ---------------------------------
+       VOZ DE IJA
+    --------------------------------- */
+
+    function hablar(mensaje) {
+
+      if (!("speechSynthesis" in window)) {
+
+        console.log(
+          "El navegador no tiene síntesis de voz."
+        );
+
+        return;
+
+      }
+
+      window.speechSynthesis.cancel();
+
+      const voz =
+        new SpeechSynthesisUtterance(mensaje);
+
+      voz.lang = "es-ES";
+      voz.rate = 0.95;
+      voz.pitch = 1.0;
+      voz.volume = 1.0;
+
+      voz.onstart = function() {
+
+        if (modoConversacion) {
+
+          avatar.classList.add("hablando");
+
+          estadoVoz.textContent =
+            "Next está hablando...";
+
+        }
+
+      };
+
+      voz.onend = function() {
+
+        avatar.classList.remove("hablando");
+
+        if (modoConversacion) {
+
+          estadoVoz.textContent =
+            "Te escucho.";
+
+        }
+
+      };
+
+      window.speechSynthesis.speak(voz);
+
+    }
+
+
+    /* ---------------------------------
+       MODO CONVERSACIÓN
+    --------------------------------- */
+
+    function entrarModoVoz() {
+
+      modoConversacion = true;
+
+      modoVoz.classList.add("activo");
+
+      estadoVoz.textContent =
+        "Te escucho.";
+
+    }
+
+
+    function salirModoVoz() {
+
+      modoConversacion = false;
+
+      modoVoz.classList.remove("activo");
+
+      avatar.classList.remove("escuchando");
+
+      avatar.classList.remove("hablando");
+
+      window.speechSynthesis.cancel();
+
+    }
+
+
+    /* ---------------------------------
+       TOCAR AVATAR PARA HABLAR
+    --------------------------------- */
+
+    avatar.addEventListener(
+      "click",
+      function() {
+
+        if (!reconocimiento) {
+          return;
+        }
+
+        if (escuchando) {
+
+          reconocimiento.stop();
+
+        } else {
+
+          try {
+
+            reconocimiento.start();
+
+          } catch (error) {
+
+            console.log(error);
+
+          }
+
+        }
+
+      }
+    );
+
+
+    /* ---------------------------------
+       ENTER PARA ENVIAR
+    --------------------------------- */
+
+    texto.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (event.key === "Enter") {
+
+          enviarMensaje();
+
+        }
+
+      }
+    );
+
+
+    /* ---------------------------------
+       INTENTO DE ACTIVACIÓN AUTOMÁTICA
+    --------------------------------- */
+
+    window.addEventListener(
+      "load",
+      function() {
+
+        console.log(
+          "Next está listo."
+        );
+
+        /*
+          El navegador puede impedir que
+          el micrófono se active solo al abrir
+          la página. Por eso dejamos también
+          el botón físico disponible.
+        */
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
