@@ -8,14 +8,13 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
       background: #f5f5f5;
       color: #222;
     }
 
-    .contenedor {
+    .app {
       max-width: 700px;
       margin: auto;
       min-height: 100vh;
@@ -26,34 +25,32 @@
     .encabezado {
       text-align: center;
       padding: 25px 15px 15px;
+      background: white;
+      border-bottom: 1px solid #ddd;
     }
 
     .encabezado h1 {
       margin: 0;
-      font-size: 32px;
+      font-size: 30px;
     }
 
     .encabezado p {
-      margin-top: 8px;
+      margin: 8px 0 0;
       color: #666;
     }
 
     #conversacion {
       flex: 1;
-      padding: 15px;
+      padding: 18px;
       overflow-y: auto;
     }
 
     .mensaje {
       padding: 14px;
       margin-bottom: 12px;
-      border-radius: 14px;
+      border-radius: 15px;
       line-height: 1.5;
       white-space: pre-wrap;
-    }
-
-    .usuario {
-      background: #e1e1e1;
     }
 
     .ija {
@@ -61,24 +58,25 @@
       border: 1px solid #ddd;
     }
 
-    .entrada {
+    .usuario {
+      background: #e5e5e5;
+    }
+
+    .zonaEntrada {
       background: white;
-      padding: 12px;
       border-top: 1px solid #ddd;
-      position: sticky;
-      bottom: 0;
+      padding: 12px;
     }
 
     #mensajeTexto {
       width: 100%;
       box-sizing: border-box;
-      min-height: 50px;
-      max-height: 150px;
-      resize: vertical;
-      border: 1px solid #ccc;
-      border-radius: 14px;
+      min-height: 55px;
       padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 15px;
       font-size: 16px;
+      resize: vertical;
       outline: none;
     }
 
@@ -91,9 +89,9 @@
 
     button {
       border: none;
-      border-radius: 14px;
-      padding: 13px 18px;
-      font-size: 16px;
+      border-radius: 15px;
+      padding: 13px 20px;
+      font-size: 18px;
       cursor: pointer;
     }
 
@@ -102,34 +100,29 @@
       color: white;
     }
 
-    #botonEnviar {
-      background: #444;
-      color: white;
-    }
-
     #botonSubir {
-      background: #666;
+      background: #555;
       color: white;
     }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    #botonEnviar {
+      background: #777;
+      color: white;
     }
 
     #estado {
       text-align: center;
-      font-size: 14px;
-      color: #666;
       margin-top: 8px;
       min-height: 20px;
+      font-size: 14px;
+      color: #666;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="contenedor">
+  <div class="app">
 
     <div class="encabezado">
       <h1>NEXT</h1>
@@ -144,7 +137,7 @@
 
     </div>
 
-    <div class="entrada">
+    <div class="zonaEntrada">
 
       <textarea
         id="mensajeTexto"
@@ -173,168 +166,35 @@
 
   </div>
 
+
   <script>
 
-    // ==========================================
-    // CONEXIÓN CON IJA
-    // ==========================================
+    // =========================================
+    // ELEMENTOS
+    // =========================================
 
-    const URL_APPS_SCRIPT =
-      "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
+    const mensajeTexto =
+      document.getElementById("mensajeTexto");
 
+    const conversacion =
+      document.getElementById("conversacion");
 
-    // ==========================================
-    // ELEMENTOS DE LA PANTALLA
-    // ==========================================
+    const botonMicrofono =
+      document.getElementById("botonMicrofono");
 
-    const mensajeTexto = document.getElementById("mensajeTexto");
-    const conversacion = document.getElementById("conversacion");
-    const botonMicrofono = document.getElementById("botonMicrofono");
-    const botonEnviar = document.getElementById("botonEnviar");
-    const botonSubir = document.getElementById("botonSubir");
-    const estado = document.getElementById("estado");
+    const botonSubir =
+      document.getElementById("botonSubir");
 
+    const botonEnviar =
+      document.getElementById("botonEnviar");
 
-    // ==========================================
-    // RECONOCIMIENTO DE VOZ
-    // ==========================================
+    const estado =
+      document.getElementById("estado");
 
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
 
-    let reconocimiento = null;
-    let escuchando = false;
-
-    if (SpeechRecognition) {
-
-      reconocimiento = new SpeechRecognition();
-
-      reconocimiento.lang = "es-ES";
-
-      reconocimiento.continuous = false;
-
-      reconocimiento.interimResults = false;
-
-      reconocimiento.onstart = function() {
-
-        escuchando = true;
-
-        estado.textContent = "🎙️ Te estoy escuchando...";
-
-        botonMicrofono.textContent = "⏹️";
-
-      };
-
-
-      reconocimiento.onresult = function(event) {
-
-        const texto =
-          event.results[0][0].transcript;
-
-        mensajeTexto.value = texto;
-
-        estado.textContent =
-          "He escuchado: " + texto;
-
-      };
-
-
-      reconocimiento.onerror = function(event) {
-
-        escuchando = false;
-
-        botonMicrofono.textContent = "🎙️";
-
-        estado.textContent =
-          "No pude escuchar correctamente. Puedes intentarlo otra vez.";
-
-        console.log(
-          "Error de reconocimiento:",
-          event.error
-        );
-
-      };
-
-
-      reconocimiento.onend = function() {
-
-        escuchando = false;
-
-        botonMicrofono.textContent = "🎙️";
-
-      };
-
-    } else {
-
-      estado.textContent =
-        "Este navegador no permite reconocimiento de voz.";
-
-    }
-
-
-    // ==========================================
-    // BOTÓN DEL MICRÓFONO
-    // ==========================================
-
-    botonMicrofono.addEventListener("click", function() {
-
-      if (!reconocimiento) {
-
-        estado.textContent =
-          "El reconocimiento de voz no está disponible.";
-
-        return;
-      }
-
-      if (escuchando) {
-
-        reconocimiento.stop();
-
-      } else {
-
-        estado.textContent =
-          "🎙️ Preparando micrófono...";
-
-        reconocimiento.start();
-
-      }
-
-    });
-
-
-    // ==========================================
-    // MICRÓFONO AUTOMÁTICO
-    // ==========================================
-
-    window.addEventListener("load", function() {
-
-      if (!reconocimiento) {
-        return;
-      }
-
-      setTimeout(function() {
-
-        try {
-
-          reconocimiento.start();
-
-        } catch (error) {
-
-          console.log(
-            "El navegador requiere interacción para activar el micrófono."
-          );
-
-        }
-
-      }, 800);
-
-    });
-
-
-    // ==========================================
-    // AGREGAR MENSAJE A LA CONVERSACIÓN
-    // ==========================================
+    // =========================================
+    // AGREGAR MENSAJE
+    // =========================================
 
     function agregarMensaje(texto, tipo) {
 
@@ -350,129 +210,58 @@
 
       conversacion.scrollTop =
         conversacion.scrollHeight;
-
     }
 
 
-    // ==========================================
-    // ENVIAR MENSAJE A IJA
-    // ==========================================
+    // =========================================
+    // ENVIAR MENSAJE
+    // =========================================
 
-    async function enviarMensaje() {
+    function enviarMensaje() {
 
       const texto =
         mensajeTexto.value.trim();
 
-      if (!texto) {
+      if (texto === "") {
 
         estado.textContent =
           "Primero escribe o habla con IJA.";
 
         return;
-
       }
 
+      // MOSTRAR INMEDIATAMENTE EL MENSAJE
       agregarMensaje(
         "Tú: " + texto,
         "usuario"
       );
 
+      // LIMPIAR CUADRO
       mensajeTexto.value = "";
 
+      // AVISAR QUE EL MENSAJE FUE RECIBIDO
       estado.textContent =
-        "IJA está pensando...";
+        "Mensaje recibido. IJA está preparado.";
 
-      botonEnviar.disabled = true;
-
-      botonSubir.disabled = true;
-
-      try {
-
-        const respuesta =
-          await fetch(
-            URL_APPS_SCRIPT,
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "text/plain;charset=utf-8"
-              },
-
-              body: JSON.stringify({
-                mensaje: texto,
-                sistema: "IJA"
-              })
-            }
-          );
-
-
-        const datos =
-          await respuesta.json();
-
-
-        if (
-          datos &&
-          datos.success
-        ) {
-
-          const respuestaIJA =
-            datos.respuesta ||
-            "IJA recibió tu mensaje.";
-
-          agregarMensaje(
-            "IJA: " + respuestaIJA,
-            "ija"
-          );
-
-          hablarRespuesta(
-            respuestaIJA
-          );
-
-          estado.textContent =
-            "IJA está listo.";
-
-        } else {
-
-          const error =
-            datos && datos.error
-              ? datos.error
-              : "No se recibió una respuesta válida.";
-
-          agregarMensaje(
-            "IJA: " + error,
-            "ija"
-          );
-
-          estado.textContent =
-            "Hubo un problema con IJA.";
-
-        }
-
-      } catch (error) {
-
-        console.error(error);
+      // RESPUESTA TEMPORAL
+      setTimeout(function() {
 
         agregarMensaje(
-          "IJA: No pude conectarme con el servidor. El micrófono funciona, pero tenemos que revisar la conexión con el cerebro de IJA.",
+          "IJA: Recibí tu mensaje. Ahora vamos a conectar mi inteligencia.",
           "ija"
         );
 
         estado.textContent =
-          "Error de conexión con IJA.";
+          "IJA está listo.";
 
-      }
-
-      botonEnviar.disabled = false;
-
-      botonSubir.disabled = false;
+      }, 500);
 
     }
 
 
-    // ==========================================
+    // =========================================
     // BOTÓN ENVIAR
-    // ==========================================
+    // =========================================
 
     botonEnviar.addEventListener(
       "click",
@@ -480,9 +269,9 @@
     );
 
 
-    // ==========================================
-    // BOTÓN SUBIR / ENVIAR
-    // ==========================================
+    // =========================================
+    // BOTÓN SUBIR
+    // =========================================
 
     botonSubir.addEventListener(
       "click",
@@ -490,9 +279,9 @@
     );
 
 
-    // ==========================================
+    // =========================================
     // ENTER PARA ENVIAR
-    // ==========================================
+    // =========================================
 
     mensajeTexto.addEventListener(
       "keydown",
@@ -506,6 +295,134 @@
           event.preventDefault();
 
           enviarMensaje();
+        }
+
+      }
+    );
+
+
+    // =========================================
+    // RECONOCIMIENTO DE VOZ
+    // =========================================
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    let reconocimiento = null;
+
+    let escuchando = false;
+
+
+    if (SpeechRecognition) {
+
+      reconocimiento =
+        new SpeechRecognition();
+
+      reconocimiento.lang =
+        "es-ES";
+
+      reconocimiento.continuous =
+        false;
+
+      reconocimiento.interimResults =
+        false;
+
+
+      reconocimiento.onstart =
+        function() {
+
+          escuchando = true;
+
+          estado.textContent =
+            "🎙️ Te estoy escuchando...";
+
+          botonMicrofono.textContent =
+            "⏹️";
+        };
+
+
+      reconocimiento.onresult =
+        function(event) {
+
+          const texto =
+            event.results[0][0].transcript;
+
+          mensajeTexto.value =
+            texto;
+
+          estado.textContent =
+            "He escuchado tu mensaje.";
+
+        };
+
+
+      reconocimiento.onerror =
+        function(event) {
+
+          escuchando = false;
+
+          botonMicrofono.textContent =
+            "🎙️";
+
+          estado.textContent =
+            "No pude escuchar. Inténtalo nuevamente.";
+
+          console.log(
+            "Error de voz:",
+            event.error
+          );
+        };
+
+
+      reconocimiento.onend =
+        function() {
+
+          escuchando = false;
+
+          botonMicrofono.textContent =
+            "🎙️";
+        };
+
+    } else {
+
+      estado.textContent =
+        "El navegador no permite reconocimiento de voz.";
+
+    }
+
+
+    // =========================================
+    // BOTÓN DEL MICRÓFONO
+    // =========================================
+
+    botonMicrofono.addEventListener(
+      "click",
+      function() {
+
+        if (!reconocimiento) {
+
+          estado.textContent =
+            "El micrófono no está disponible.";
+
+          return;
+        }
+
+        if (escuchando) {
+
+          reconocimiento.stop();
+
+        } else {
+
+          try {
+
+            reconocimiento.start();
+
+          } catch (error) {
+
+            console.log(error);
+
+          }
 
         }
 
@@ -513,32 +430,41 @@
     );
 
 
-    // ==========================================
-    // VOZ DE IJA
-    // ==========================================
+    // =========================================
+    // INTENTO DE ACTIVACIÓN AUTOMÁTICA
+    // =========================================
 
-    function hablarRespuesta(texto) {
+    window.addEventListener(
+      "load",
+      function() {
 
-      if (!window.speechSynthesis) {
-        return;
+        if (!reconocimiento) {
+          return;
+        }
+
+        setTimeout(
+          function() {
+
+            try {
+
+              reconocimiento.start();
+
+            } catch (error) {
+
+              console.log(
+                "Chrome necesita una interacción para activar el micrófono."
+              );
+
+            }
+
+          },
+          1000
+        );
+
       }
-
-      window.speechSynthesis.cancel();
-
-      const voz =
-        new SpeechSynthesisUtterance(texto);
-
-      voz.lang = "es-ES";
-
-      voz.rate = 1;
-
-      voz.pitch = 1;
-
-      window.speechSynthesis.speak(voz);
-
-    }
+    );
 
   </script>
 
 </body>
-</html>
+        </html>
