@@ -569,8 +569,7 @@
       }
     );
 
-    window.addEventListener(
-      "load",
+    
       function() {
 
         console.log(
@@ -578,7 +577,42 @@
         );
 
       }
+ window.addEventListener(
+  "load",
+  function() {
+
+    console.log(
+      "Next está listo."
     );
+
+    iniciarEscuchaNext();
+
+  }
+);
+
+function iniciarEscuchaNext() {
+
+  if (!reconocimiento) {
+    return;
+  }
+
+  try {
+
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = true;
+    reconocimiento.lang = "es-ES";
+
+    reconocimiento.start();
+
+  } catch (error) {
+
+    console.log(
+      "Next ya está escuchando."
+    );
+
+  }
+
+    } 
 
   </script>
 
