@@ -4,467 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Next - IJA</title>
+  <title>Next</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f5f5f5;
       color: #222;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .app {
-      max-width: 700px;
-      margin: auto;
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     .encabezado {
-      text-align: center;
-      padding: 25px 15px 15px;
-      background: white;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .encabezado h1 {
-      margin: 0;
-      font-size: 30px;
-    }
-
-    .encabezado p {
-      margin: 8px 0 0;
-      color: #666;
-    }
-
-    #conversacion {
-      flex: 1;
       padding: 18px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .chat {
+      flex: 1;
       overflow-y: auto;
+      padding: 15px;
+      padding-bottom: 10px;
     }
 
     .mensaje {
-      padding: 14px;
-      margin-bottom: 12px;
-      border-radius: 15px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-    }
-
-    .ija {
-      background: white;
-      border: 1px solid #ddd;
+      max-width: 85%;
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 18px;
+      line-height: 1.4;
+      word-wrap: break-word;
     }
 
     .usuario {
-      background: #e5e5e5;
+      margin-left: auto;
+      background: #dfe9ff;
+      text-align: right;
+    }
+
+    .ija {
+      margin-right: auto;
+      background: white;
+      text-align: left;
     }
 
     .zonaEntrada {
-      background: white;
-      border-top: 1px solid #ddd;
-      padding: 12px;
+      padding: 10px;
+      background: #f5f5f5;
     }
 
-    #mensajeTexto {
-      width: 100%;
-      box-sizing: border-box;
-      min-height: 55px;
-      padding: 14px;
-      border: 1px solid #ccc;
-      border-radius: 15px;
-      font-size: 16px;
-      resize: vertical;
-      outline: none;
-    }
-
-    .botones {
+    .entrada {
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    button {
-      border: none;
-      border-radius: 15px;
-      padding: 13px 20px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    #botonMicrofono {
-      background: #222;
-      color: white;
-    }
-
-    #botonSubir {
-      background: #555;
-      color: white;
-    }
-
-    #botonEnviar {
-      background: #777;
-      color: white;
-    }
-
-    #estado {
-      text-align: center;
-      margin-top: 8px;
-      min-height: 20px;
-      font-size: 14px;
-      color: #666;
-    }
-  </style>
-</head>
-
-<body>
-
-  <div class="app">
-
-    <div class="encabezado">
-      <h1>NEXT</h1>
-      <p>Israel Jacob Arizmendi</p>
-    </div>
-
-    <div id="conversacion">
-
-      <div class="mensaje ija">
-        Hola. Soy IJA. ¿En qué puedo ayudarte?
-      </div>
-
-    </div>
-
-    <div class="zonaEntrada">
-
-      <textarea
-        id="mensajeTexto"
-        placeholder="Escribe o habla conmigo..."
-      ></textarea>
-
-      <div class="botones">
-
-        <button id="botonMicrofono">
-          🎙️
-        </button>
-
-        <button id="botonSubir">
-          ⬆️
-        </button>
-
-        <button id="botonEnviar">
-          ➤
-        </button>
-
-      </div>
-
-      <div id="estado"></div>
-
-    </div>
-
-  </div>
-
-
-  <script>
-
-    // =========================================
-    // ELEMENTOS
-    // =========================================
-
-    const mensajeTexto =
-      document.getElementById("mensajeTexto");
-
-    const conversacion =
-      document.getElementById("conversacion");
-
-    const botonMicrofono =
-      document.getElementById("botonMicrofono");
-
-    const botonSubir =
-      document.getElementById("botonSubir");
-
-    const botonEnviar =
-      document.getElementById("botonEnviar");
-
-    const estado =
-      document.getElementById("estado");
-
-
-    // =========================================
-    // AGREGAR MENSAJE
-    // =========================================
-
-    function agregarMensaje(texto, tipo) {
-
-      const mensaje =
-        document.createElement("div");
-
-      mensaje.className =
-        "mensaje " + tipo;
-
-      mensaje.textContent = texto;
-
-      conversacion.appendChild(mensaje);
-
-      conversacion.scrollTop =
-        conversacion.scrollHeight;
-    }
-
-
-    // =========================================
-    // ENVIAR MENSAJE
-    // =========================================
-
-    function enviarMensaje() {
-
-      const texto =
-        mensajeTexto.value.trim();
-
-      if (texto === "") {
-
-        estado.textContent =
-          "Primero escribe o habla con IJA.";
-
-        return;
-      }
-
-      // MOSTRAR INMEDIATAMENTE EL MENSAJE
-      agregarMensaje(
-        "Tú: " + texto,
-        "usuario"
-      );
-
-      // LIMPIAR CUADRO
-      mensajeTexto.value = "";
-
-      // AVISAR QUE EL MENSAJE FUE RECIBIDO
-      estado.textContent =
-        "Mensaje recibido. IJA está preparado.";
-
-      // RESPUESTA TEMPORAL
-      setTimeout(function() {
-
-        agregarMensaje(
-          "IJA: Recibí tu mensaje. Ahora vamos a conectar mi inteligencia.",
-          "ija"
-        );
-
-        estado.textContent =
-          "IJA está listo.";
-
-      }, 500);
-
-    }
-
-
-    // =========================================
-    // BOTÓN ENVIAR
-    // =========================================
-
-    botonEnviar.addEventListener(
-      "click",
-      enviarMensaje
-    );
-
-
-    // =========================================
-    // BOTÓN SUBIR
-    // =========================================
-
-    botonSubir.addEventListener(
-      "click",
-      enviarMensaje
-    );
-
-
-    // =========================================
-    // ENTER PARA ENVIAR
-    // =========================================
-
-    mensajeTexto.addEventListener(
-      "keydown",
-      function(event) {
-
-        if (
-          event.key === "Enter" &&
-          !event.shiftKey
-        ) {
-
-          event.preventDefault();
-
-          enviarMensaje();
-        }
-
-      }
-    );
-
-
-    // =========================================
-    // RECONOCIMIENTO DE VOZ
-    // =========================================
-
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
-
-    let reconocimiento = null;
-
-    let escuchando = false;
-
-
-    if (SpeechRecognition) {
-
-      reconocimiento =
-        new SpeechRecognition();
-
-      reconocimiento.lang =
-        "es-ES";
-
-      reconocimiento.continuous =
-        false;
-
-      reconocimiento.interimResults =
-        false;
-
-
-      reconocimiento.onstart =
-        function() {
-
-          escuchando = true;
-
-          estado.textContent =
-            "🎙️ Te estoy escuchando...";
-
-          botonMicrofono.textContent =
-            "⏹️";
-        };
-
-
-      reconocimiento.onresult =
-        function(event) {
-
-          const texto =
-            event.results[0][0].transcript;
-
-          mensajeTexto.value =
-            texto;
-
-          estado.textContent =
-            "He escuchado tu mensaje.";
-
-        };
-
-
-      reconocimiento.onerror =
-        function(event) {
-
-          escuchando = false;
-
-          botonMicrofono.textContent =
-            "🎙️";
-
-          estado.textContent =
-            "No pude escuchar. Inténtalo nuevamente.";
-
-          console.log(
-            "Error de voz:",
-            event.error
-          );
-        };
-
-
-      reconocimiento.onend =
-        function() {
-
-          escuchando = false;
-
-          botonMicrofono.textContent =
-            "🎙️";
-        };
-
-    } else {
-
-      estado.textContent =
-        "El navegador no permite reconocimiento de voz.";
-
-    }
-
-
-    // =========================================
-    // BOTÓN DEL MICRÓFONO
-    // =========================================
-
-    botonMicrofono.addEventListener(
-      "click",
-      function() {
-
-        if (!reconocimiento) {
-
-          estado.textContent =
-            "El micrófono no está disponible.";
-
-          return;
-        }
-
-        if (escuchando) {
-
-          reconocimiento.stop();
-
-        } else {
-
-          try {
-
-            reconocimiento.start();
-
-          } catch (error) {
-
-            console.log(error);
-
-          }
-
-        }
-
-      }
-    );
-
-
-    // =========================================
-    // INTENTO DE ACTIVACIÓN AUTOMÁTICA
-    // =========================================
-
-    window.addEventListener(
-      "load",
-      function() {
-
-        if (!reconocimiento) {
-          return;
-        }
-
-        setTimeout(
-          function() {
-
-            try {
-
-              reconocimiento.start();
-
-            } catch (error) {
-
-              console.log(
-                "Chrome necesita una interacción para activar el micrófono."
-              );
-
-            }
-
-          },
-          1000
-        );
-
-      }
-    );
-
-  </script>
-
-</body>
-        </html>
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border-radius: 28px;
+      padding: 7px;
+      box-shadow
