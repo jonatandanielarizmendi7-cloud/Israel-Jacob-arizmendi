@@ -1,70 +1,319 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Israel Jacob Arizmendi</title>  <style>
+
+  <title>Next - IJA</title>
+
+  <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 30px;
       margin: 0;
+      padding: 0;
       background: #f5f5f5;
       color: #222;
     }
 
-    h1 {
-      margin-bottom: 10px;
+    .contenedor {
+      max-width: 700px;
+      margin: auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .encabezado {
+      text-align: center;
+      padding: 25px 15px 15px;
+    }
+
+    .encabezado h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .encabezado p {
+      margin-top: 8px;
+      color: #666;
+    }
+
+    #conversacion {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .mensaje {
+      padding: 14px;
+      margin-bottom: 12px;
+      border-radius: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .usuario {
+      background: #e1e1e1;
+    }
+
+    .ija {
+      background: white;
+      border: 1px solid #ddd;
+    }
+
+    .entrada {
+      background: white;
+      padding: 12px;
+      border-top: 1px solid #ddd;
+      position: sticky;
+      bottom: 0;
+    }
+
+    #mensajeTexto {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 50px;
+      max-height: 150px;
+      resize: vertical;
+      border: 1px solid #ccc;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .botones {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
     }
 
     button {
-      padding: 15px 25px;
-      font-size: 18px;
       border: none;
-      border-radius: 10px;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 16px;
       cursor: pointer;
+    }
+
+    #botonMicrofono {
       background: #222;
       color: white;
     }
 
-    #resultado {
-      margin-top: 25px;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      min-height: 50px;
+    #botonEnviar {
+      background: #444;
+      color: white;
     }
-  </style></head><body>  <h1>Israel Jacob Arizmendi</h1>  <p>Prueba de voz de IJA</p><button id="hablar">🎙️ Hablar conmigo</button>
 
-  <div id="resultado">
-    Toca el botón y habla.
-  </div>  <script>
+    #botonSubir {
+      background: #666;
+      color: white;
+    }
 
-    const boton = document.getElementById("hablar");
-    const resultado = document.getElementById("resultado");
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #estado {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="contenedor">
+
+    <div class="encabezado">
+      <h1>NEXT</h1>
+      <p>Israel Jacob Arizmendi</p>
+    </div>
+
+    <div id="conversacion">
+
+      <div class="mensaje ija">
+        Hola. Soy IJA. ¿En qué puedo ayudarte?
+      </div>
+
+    </div>
+
+    <div class="entrada">
+
+      <textarea
+        id="mensajeTexto"
+        placeholder="Escribe o habla conmigo..."
+      ></textarea>
+
+      <div class="botones">
+
+        <button id="botonMicrofono">
+          🎙️
+        </button>
+
+        <button id="botonSubir">
+          ⬆️
+        </button>
+
+        <button id="botonEnviar">
+          ➤
+        </button>
+
+      </div>
+
+      <div id="estado"></div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    // ==========================================
+    // CONEXIÓN CON IJA
+    // ==========================================
+
+    const URL_APPS_SCRIPT =
+      "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
+
+
+    // ==========================================
+    // ELEMENTOS DE LA PANTALLA
+    // ==========================================
+
+    const mensajeTexto = document.getElementById("mensajeTexto");
+    const conversacion = document.getElementById("conversacion");
+    const botonMicrofono = document.getElementById("botonMicrofono");
+    const botonEnviar = document.getElementById("botonEnviar");
+    const botonSubir = document.getElementById("botonSubir");
+    const estado = document.getElementById("estado");
+
+
+    // ==========================================
+    // RECONOCIMIENTO DE VOZ
+    // ==========================================
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+    let reconocimiento = null;
+    let escuchando = false;
 
-      resultado.textContent =
-        "Tu navegador no permite reconocimiento de voz.";
+    if (SpeechRecognition) {
 
-      boton.disabled = true;
+      reconocimiento = new SpeechRecognition();
+
+      reconocimiento.lang = "es-ES";
+
+      reconocimiento.continuous = false;
+
+      reconocimiento.interimResults = false;
+
+      reconocimiento.onstart = function() {
+
+        escuchando = true;
+
+        estado.textContent = "🎙️ Te estoy escuchando...";
+
+        botonMicrofono.textContent = "⏹️";
+
+      };
+
+
+      reconocimiento.onresult = function(event) {
+
+        const texto =
+          event.results[0][0].transcript;
+
+        mensajeTexto.value = texto;
+
+        estado.textContent =
+          "He escuchado: " + texto;
+
+      };
+
+
+      reconocimiento.onerror = function(event) {
+
+        escuchando = false;
+
+        botonMicrofono.textContent = "🎙️";
+
+        estado.textContent =
+          "No pude escuchar correctamente. Puedes intentarlo otra vez.";
+
+        console.log(
+          "Error de reconocimiento:",
+          event.error
+        );
+
+      };
+
+
+      reconocimiento.onend = function() {
+
+        escuchando = false;
+
+        botonMicrofono.textContent = "🎙️";
+
+      };
 
     } else {
 
-      const reconocimiento = new SpeechRecognition();
+      estado.textContent =
+        "Este navegador no permite reconocimiento de voz.";
 
-      reconocimiento.lang = "es-ES";
-      reconocimiento.continuous = false;
-      reconocimiento.interimResults = false;
+    }
 
-      boton.addEventListener("click", function() {
 
-        resultado.textContent =
-          "🎧 Escuchando... Habla ahora.";
+    // ==========================================
+    // BOTÓN DEL MICRÓFONO
+    // ==========================================
+
+    botonMicrofono.addEventListener("click", function() {
+
+      if (!reconocimiento) {
+
+        estado.textContent =
+          "El reconocimiento de voz no está disponible.";
+
+        return;
+      }
+
+      if (escuchando) {
+
+        reconocimiento.stop();
+
+      } else {
+
+        estado.textContent =
+          "🎙️ Preparando micrófono...";
+
+        reconocimiento.start();
+
+      }
+
+    });
+
+
+    // ==========================================
+    // MICRÓFONO AUTOMÁTICO
+    // ==========================================
+
+    window.addEventListener("load", function() {
+
+      if (!reconocimiento) {
+        return;
+      }
+
+      setTimeout(function() {
 
         try {
 
@@ -72,62 +321,165 @@
 
         } catch (error) {
 
-          resultado.textContent =
-            "No se pudo iniciar el micrófono: " +
-            error.message;
+          console.log(
+            "El navegador requiere interacción para activar el micrófono."
+          );
 
         }
 
-      });
+      }, 800);
 
-      reconocimiento.onresult = function(evento) {
+    });
 
-        const mensaje =
-          evento.results[0][0].transcript;
 
-        resultado.textContent =
-          "IJA escuchó: " + mensaje;
+    // ==========================================
+    // AGREGAR MENSAJE A LA CONVERSACIÓN
+    // ==========================================
 
-        hablar(mensaje);
+    function agregarMensaje(texto, tipo) {
 
-      };
+      const mensaje =
+        document.createElement("div");
 
-      reconocimiento.onerror = function(evento) {
+      mensaje.className =
+        "mensaje " + tipo;
 
-        resultado.textContent =
-          "Error del micrófono: " +
-          evento.error;
+      mensaje.textContent = texto;
 
-      };
+      conversacion.appendChild(mensaje);
 
-      reconocimiento.onend = function() {
-
-        boton.disabled = false;
-
-      };
+      conversacion.scrollTop =
+        conversacion.scrollHeight;
 
     }
 
-    function hablar(texto) {
 
-      if (!("speechSynthesis" in window)) {
+    // ==========================================
+    // ENVIAR MENSAJE A IJA
+    // ==========================================
+
+    async function enviarMensaje() {
+
+      const texto =
+        mensajeTexto.value.trim();
+
+      if (!texto) {
+
+        estado.textContent =
+          "Primero escribe o habla con IJA.";
+
         return;
+
       }
 
-      window.speechSynthesis.cancel();
+      agregarMensaje(
+        "Tú: " + texto,
+        "usuario"
+      );
 
-      const voz =
-        new SpeechSynthesisUtterance(texto);
+      mensajeTexto.value = "";
 
-      voz.lang = "es-ES";
-      voz.rate = 1;
-      voz.pitch = 1;
+      estado.textContent =
+        "IJA está pensando...";
 
-      window.speechSynthesis.speak(voz);
+      botonEnviar.disabled = true;
+
+      botonSubir.disabled = true;
+
+      try {
+
+        const respuesta =
+          await fetch(
+            URL_APPS_SCRIPT,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "text/plain;charset=utf-8"
+              },
+
+              body: JSON.stringify({
+                mensaje: texto,
+                sistema: "IJA"
+              })
+            }
+          );
+
+
+        const datos =
+          await respuesta.json();
+
+
+        if (
+          datos &&
+          datos.success
+        ) {
+
+          const respuestaIJA =
+            datos.respuesta ||
+            "IJA recibió tu mensaje.";
+
+          agregarMensaje(
+            "IJA: " + respuestaIJA,
+            "ija"
+          );
+
+          hablarRespuesta(
+            respuestaIJA
+          );
+
+          estado.textContent =
+            "IJA está listo.";
+
+        } else {
+
+          const error =
+            datos && datos.error
+              ? datos.error
+              : "No se recibió una respuesta válida.";
+
+          agregarMensaje(
+            "IJA: " + error,
+            "ija"
+          );
+
+          estado.textContent =
+            "Hubo un problema con IJA.";
+
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        agregarMensaje(
+          "IJA: No pude conectarme con el servidor. El micrófono funciona, pero tenemos que revisar la conexión con el cerebro de IJA.",
+          "ija"
+        );
+
+        estado.textContent =
+          "Error de conexión con IJA.";
+
+      }
+
+      botonEnviar.disabled = false;
+
+      botonSubir.disabled = false;
 
     }
 
-  </script>
-  
-  </body>
-</html>
+
+    // ==========================================
+    // BOTÓN ENVIAR
+    // ==========================================
+
+    botonEnviar.addEventListener(
+      "click",
+      enviarMensaje
+    );
+
+
+    // ==========================================
+    // BOTÓN SUBIR / ENVIAR
+    // =================================
