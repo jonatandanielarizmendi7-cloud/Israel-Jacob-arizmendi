@@ -482,4 +482,63 @@
 
     // ==========================================
     // BOTÓN SUBIR / ENVIAR
-    // =================================
+    // ==========================================
+
+    botonSubir.addEventListener(
+      "click",
+      enviarMensaje
+    );
+
+
+    // ==========================================
+    // ENTER PARA ENVIAR
+    // ==========================================
+
+    mensajeTexto.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
+
+          event.preventDefault();
+
+          enviarMensaje();
+
+        }
+
+      }
+    );
+
+
+    // ==========================================
+    // VOZ DE IJA
+    // ==========================================
+
+    function hablarRespuesta(texto) {
+
+      if (!window.speechSynthesis) {
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const voz =
+        new SpeechSynthesisUtterance(texto);
+
+      voz.lang = "es-ES";
+
+      voz.rate = 1;
+
+      voz.pitch = 1;
+
+      window.speechSynthesis.speak(voz);
+
+    }
+
+  </script>
+
+</body>
+</html>
