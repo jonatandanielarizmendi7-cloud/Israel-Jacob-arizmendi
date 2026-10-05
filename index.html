@@ -262,148 +262,148 @@
 
   <script>
 
+    const URL_APPS_SCRIPT =
+      "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
+
     let reconocimiento = null;
     let escuchando = false;
     let modoConversacion = false;
 
-    const texto = document.getElementById("texto");
-    const chat = document.getElementById("chat");
-    const botonMicrofono = document.getElementById("botonMicrofono");
-    const modoVoz = document.getElementById("modoVoz");
-    const avatar = document.getElementById("avatar");
-    const estadoVoz = document.getElementById("estadoVoz");
+    const texto =
+      document.getElementById("texto");
+
+    const chat =
+      document.getElementById("chat");
+
+    const botonMicrofono =
+      document.getElementById("botonMicrofono");
+
+    const modoVoz =
+      document.getElementById("modoVoz");
+
+    const avatar =
+      document.getElementById("avatar");
+
+    const estadoVoz =
+      document.getElementById("estadoVoz");
+
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
+
     if (SpeechRecognition) {
 
-      reconocimiento = new SpeechRecognition();
+      reconocimiento =
+        new SpeechRecognition();
 
-      reconocimiento.lang = "es-ES";
-      reconocimiento.continuous = false;
-      reconocimiento.interimResults = false;
+      reconocimiento.lang =
+        "es-ES";
 
-      reconocimiento.onstart = function() {
+      reconocimiento.continuous =
+        false;
 
-        escuchando = true;
+      reconocimiento.interimResults =
+        false;
 
-        botonMicrofono.classList.add("escuchando");
 
-        if (modoConversacion) {
+      reconocimiento.onstart =
+        function() {
 
-          avatar.classList.add("escuchando");
+          escuchando = true;
 
-          estadoVoz.textContent =
-            "Te estoy escuchando...";
+          botonMicrofono.classList.add(
+            "escuchando"
+          );
 
-        }
+          if (modoConversacion) {
 
-      };
+            avatar.classList.add(
+              "escuchando"
+            );
 
-  reconocimiento.onresult = function(event) {
+            estadoVoz.textContent =
+              "Te estoy escuchando...";
 
-  let resultado = "";
+          }
 
-  for (
-    let i = event.resultIndex;
-    i < event.results.length;
-    i++
-  ) {
+        };
 
-    resultado +=
-      event.results[i][0].transcript + " ";
 
-  }
+      reconocimiento.onresult =
+        function(event) {
 
-  resultado = resultado.trim();
+          const resultado =
+            event.results[0][0].transcript.trim();
 
-  console.log(
-    "Next escuchó:",
-    resultado
-  );
+          texto.value =
+            resultado;
 
-  const textoEscuchado =
-    resultado.toLowerCase();
+          if (modoConversacion) {
 
-  if (
-    textoEscuchado.includes("next")
-  ) {
+            estadoVoz.textContent =
+              "Procesando...";
 
-    entrarModoVoz();
+          }
 
-    estadoVoz.textContent =
-      "Sí, te escucho.";
+          enviarMensaje();
 
-    hablar(
-      "Sí, te escucho. ¿En qué puedo ayudarte?"
-    );
+        };
 
-    return;
 
-  }
+      reconocimiento.onend =
+        function() {
 
-};
+          escuchando = false;
 
-        const resultado =
-          event.results[0][0].transcript;
+          botonMicrofono.classList.remove(
+            "escuchando"
+          );
 
-        texto.value = resultado;
+          avatar.classList.remove(
+            "escuchando"
+          );
 
-        const mensajeMinuscula =
-          resultado.toLowerCase();
+          if (modoConversacion) {
 
-        if (
-          mensajeMinuscula.includes("next")
-        ) {
+            estadoVoz.textContent =
+              "Te escucho.";
 
-          entrarModoVoz();
+          }
 
-        }
+        };
 
-      };
 
-      reconocimiento.onend = function() {
+      reconocimiento.onerror =
+        function(event) {
 
-        escuchando = false;
+          console.log(
+            "Error de voz:",
+            event.error
+          );
 
-        botonMicrofono.classList.remove("escuchando");
+          escuchando = false;
 
-        avatar.classList.remove("escuchando");
+          botonMicrofono.classList.remove(
+            "escuchando"
+          );
 
-        if (modoConversacion) {
+          avatar.classList.remove(
+            "escuchando"
+          );
 
-          estadoVoz.textContent =
-            "Te escucho cuando quieras.";
+          if (modoConversacion) {
 
-        }
+            estadoVoz.textContent =
+              "No pude escucharte. Intenta nuevamente.";
 
-      };
+          }
 
-      reconocimiento.onerror = function(event) {
-
-        console.log(
-          "Error de voz:",
-          event.error
-        );
-
-        escuchando = false;
-
-        botonMicrofono.classList.remove("escuchando");
-
-        avatar.classList.remove("escuchando");
-
-        if (modoConversacion) {
-
-          estadoVoz.textContent =
-            "No pude escucharte. Toca para intentar nuevamente.";
-
-        }
-
-      };
+        };
 
     }
+
 
     function alternarMicrofono() {
 
@@ -417,34 +417,44 @@
 
       }
 
+
       if (escuchando) {
 
         reconocimiento.stop();
 
-      } else {
+        return;
 
-        try {
+      }
 
-          reconocimiento.start();
 
-        } catch (error) {
+      try {
 
-          console.log(error);
+        reconocimiento.start();
 
-        }
+      } catch (error) {
+
+        console.log(
+          "No se pudo iniciar el micrófono:",
+          error
+        );
 
       }
 
     }
 
-    function enviarMensaje() {
+
+    async function enviarMensaje() {
 
       const mensaje =
         texto.value.trim();
 
+
       if (!mensaje) {
+
         return;
+
       }
+
 
       agregarMensaje(
         "Tú",
@@ -452,20 +462,101 @@
         "usuario"
       );
 
+
       texto.value = "";
 
-      const respuesta =
-        "Hola. Soy IJA. Te escuché correctamente.";
 
       agregarMensaje(
         "IJA",
-        respuesta,
+        "Estoy pensando...",
         "ija"
       );
 
-      hablar(respuesta);
+
+      try {
+
+        const respuestaHTTP =
+          await fetch(
+            URL_APPS_SCRIPT,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "text/plain;charset=utf-8"
+              },
+              body: JSON.stringify({
+                mensaje: mensaje
+              })
+            }
+          );
+
+
+        const datos =
+          await respuestaHTTP.json();
+
+
+        const mensajesIJA =
+          document.querySelectorAll(
+            ".ija"
+          );
+
+
+        const ultimo =
+          mensajesIJA[
+            mensajesIJA.length - 1
+          ];
+
+
+        if (datos.ok) {
+
+          ultimo.innerHTML =
+            "<strong>IJA:</strong> " +
+            datos.respuesta;
+
+          hablar(
+            datos.respuesta
+          );
+
+        } else {
+
+          ultimo.innerHTML =
+            "<strong>IJA:</strong> " +
+            (
+              datos.mensaje ||
+              "IJA tuvo un problema."
+            );
+
+        }
+
+
+      } catch (error) {
+
+        console.log(
+          "Error de conexión:",
+          error
+        );
+
+
+        const mensajesIJA =
+          document.querySelectorAll(
+            ".ija"
+          );
+
+
+        const ultimo =
+          mensajesIJA[
+            mensajesIJA.length - 1
+          ];
+
+
+        ultimo.innerHTML =
+          "<strong>IJA:</strong> " +
+          "No pude conectarme con el motor.";
+
+      }
 
     }
+
 
     function agregarMensaje(
       nombre,
@@ -474,10 +565,14 @@
     ) {
 
       const div =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
+
 
       div.className =
         "mensaje " + clase;
+
 
       div.innerHTML =
         "<strong>" +
@@ -485,97 +580,139 @@
         ":</strong> " +
         contenido;
 
-      chat.appendChild(div);
+
+      chat.appendChild(
+        div
+      );
+
 
       chat.scrollTop =
         chat.scrollHeight;
 
     }
 
+
     function hablar(mensaje) {
 
-      if (!("speechSynthesis" in window)) {
-
-        console.log(
-          "El navegador no tiene síntesis de voz."
-        );
+      if (
+        !("speechSynthesis" in window)
+      ) {
 
         return;
 
       }
 
+
       window.speechSynthesis.cancel();
 
+
       const voz =
-        new SpeechSynthesisUtterance(mensaje);
+        new SpeechSynthesisUtterance(
+          mensaje
+        );
 
-      voz.lang = "es-ES";
-      voz.rate = 0.95;
-      voz.pitch = 1.0;
-      voz.volume = 1.0;
 
-      voz.onstart = function() {
+      voz.lang =
+        "es-ES";
 
-        if (modoConversacion) {
+      voz.rate =
+        0.95;
 
-          avatar.classList.add("hablando");
+      voz.pitch =
+        1.0;
 
-          estadoVoz.textContent =
-            "Next está hablando...";
+      voz.volume =
+        1.0;
 
-        }
 
-      };
+      voz.onstart =
+        function() {
 
-      voz.onend = function() {
+          if (modoConversacion) {
 
-        avatar.classList.remove("hablando");
+            avatar.classList.add(
+              "hablando"
+            );
 
-        if (modoConversacion) {
+            estadoVoz.textContent =
+              "Next está hablando...";
 
-          estadoVoz.textContent =
-            "Te escucho.";
+          }
 
-        }
+        };
 
-      };
 
-      window.speechSynthesis.speak(voz);
+      voz.onend =
+        function() {
+
+          avatar.classList.remove(
+            "hablando"
+          );
+
+          if (modoConversacion) {
+
+            estadoVoz.textContent =
+              "Te escucho.";
+
+          }
+
+        };
+
+
+      window.speechSynthesis.speak(
+        voz
+      );
 
     }
 
+
     function entrarModoVoz() {
 
-      modoConversacion = true;
+      modoConversacion =
+        true;
 
-      modoVoz.classList.add("activo");
+      modoVoz.classList.add(
+        "activo"
+      );
 
       estadoVoz.textContent =
         "Te escucho.";
 
     }
 
+
     function salirModoVoz() {
 
-      modoConversacion = false;
+      modoConversacion =
+        false;
 
-      modoVoz.classList.remove("activo");
+      modoVoz.classList.remove(
+        "activo"
+      );
 
-      avatar.classList.remove("escuchando");
+      avatar.classList.remove(
+        "escuchando"
+      );
 
-      avatar.classList.remove("hablando");
+      avatar.classList.remove(
+        "hablando"
+      );
 
       window.speechSynthesis.cancel();
 
     }
+
 
     avatar.addEventListener(
       "click",
       function() {
 
         if (!reconocimiento) {
+
           return;
+
         }
+
 
         if (escuchando) {
 
@@ -598,6 +735,7 @@
       }
     );
 
+
     texto.addEventListener(
       "keydown",
       function(event) {
@@ -611,7 +749,9 @@
       }
     );
 
-    
+
+    window.addEventListener(
+      "load",
       function() {
 
         console.log(
@@ -619,46 +759,9 @@
         );
 
       }
- window.addEventListener(
-  "load",
-  function() {
-
-    console.log(
-      "Next está listo."
     );
 
-    iniciarEscuchaNext();
-
-  }
-);
-
-function iniciarEscuchaNext() {
-
-  if (!reconocimiento) {
-    return;
-  }
-
-  try {
-
-    reconocimiento.continuous = true;
-    reconocimiento.interimResults = true;
-    reconocimiento.lang = "es-ES";
-
-    reconocimiento.start();
-
-  } catch (error) {
-
-    console.log(
-      "Next ya está escuchando."
-    );
-
-  }
-
-    } 
-
-  <script>
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
-</script>
+  </script>
 
 </body>
-</html> 
+</html>
