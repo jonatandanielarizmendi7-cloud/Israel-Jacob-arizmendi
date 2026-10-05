@@ -153,8 +153,9 @@
 
     .avatar.escuchando {
       transform: scale(1.08);
-      box-shadow: 0 0 0 15px rgba(0, 0, 0, 0.05),
-                  0 8px 30px rgba(0, 0, 0, 0.15);
+      box-shadow:
+        0 0 0 15px rgba(0, 0, 0, 0.05),
+        0 8px 30px rgba(0, 0, 0, 0.15);
     }
 
     .avatar.hablando {
@@ -221,6 +222,7 @@
           autocomplete="off">
 
         <button
+          id="botonEnviar"
           class="boton enviar"
           onclick="enviarMensaje()">
           ➤
@@ -239,15 +241,11 @@
       Next
     </div>
 
-    <div
-      id="avatar"
-      class="avatar">
+    <div id="avatar" class="avatar">
       N
     </div>
 
-    <div
-      id="estadoVoz"
-      class="estadoVoz">
+    <div id="estadoVoz" class="estadoVoz">
       Toca el micrófono para hablar
     </div>
 
@@ -262,12 +260,10 @@
 
   <script>
 
-    const URL_APPS_SCRIPT =
-      "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
-
     let reconocimiento = null;
     let escuchando = false;
     let modoConversacion = false;
+
 
     const texto =
       document.getElementById("texto");
@@ -278,6 +274,9 @@
     const botonMicrofono =
       document.getElementById("botonMicrofono");
 
+    const botonEnviar =
+      document.getElementById("botonEnviar");
+
     const modoVoz =
       document.getElementById("modoVoz");
 
@@ -287,6 +286,10 @@
     const estadoVoz =
       document.getElementById("estadoVoz");
 
+
+    // ==========================================
+    // RECONOCIMIENTO DE VOZ
+    // ==========================================
 
     const SpeechRecognition =
       window.SpeechRecognition ||
@@ -306,6 +309,9 @@
 
       reconocimiento.interimResults =
         false;
+
+      reconocimiento.maxAlternatives =
+        1;
 
 
       reconocimiento.onstart =
@@ -335,7 +341,9 @@
         function(event) {
 
           const resultado =
-            event.results[0][0].transcript.trim();
+            event.results[0][0]
+              .transcript
+              .trim();
 
           texto.value =
             resultado;
@@ -364,13 +372,6 @@
           avatar.classList.remove(
             "escuchando"
           );
-
-          if (modoConversacion) {
-
-            estadoVoz.textContent =
-              "Te escucho.";
-
-          }
 
         };
 
@@ -404,6 +405,10 @@
 
     }
 
+
+    // ==========================================
+    // MICRÓFONO
+    // ==========================================
 
     function alternarMicrofono() {
 
@@ -443,7 +448,11 @@
     }
 
 
-    async function enviarMensaje() {
+    // ==========================================
+    // ENVIAR MENSAJE
+    // ==========================================
+
+    function enviarMensaje() {
 
       const mensaje =
         texto.value.trim();
@@ -466,97 +475,117 @@
       texto.value = "";
 
 
-      agregarMensaje(
-        "IJA",
-        "Estoy pensando...",
-        "ija"
-      );
-
-
-      try {
-
-        const respuestaHTTP =
-          await fetch(
-            URL_APPS_SCRIPT,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "text/plain;charset=utf-8"
-              },
-              body: JSON.stringify({
-                mensaje: mensaje
-              })
-            }
-          );
-
-
-        const datos =
-          await respuestaHTTP.json();
-
-
-        const mensajesIJA =
-          document.querySelectorAll(
-            ".ija"
-          );
-
-
-        const ultimo =
-          mensajesIJA[
-            mensajesIJA.length - 1
-          ];
-
-
-        if (datos.ok) {
-
-          ultimo.innerHTML =
-            "<strong>IJA:</strong> " +
-            datos.respuesta;
-
-          hablar(
-            datos.respuesta
-          );
-
-        } else {
-
-          ultimo.innerHTML =
-            "<strong>IJA:</strong> " +
-            (
-              datos.mensaje ||
-              "IJA tuvo un problema."
-            );
-
-        }
-
-
-      } catch (error) {
-
-        console.log(
-          "Error de conexión:",
-          error
+      const mensajeEspera =
+        agregarMensaje(
+          "IJA",
+          "Estoy pensando...",
+          "ija"
         );
 
 
-        const mensajesIJA =
-          document.querySelectorAll(
-            ".ija"
-          );
+      botonEnviar.disabled = true;
+      botonMicrofono.disabled = true;
 
 
-        const ultimo =
-          mensajesIJA[
-            mensajesIJA.length - 1
-          ];
+      // ========================================
+      // COMUNICACIÓN DIRECTA CON INDEX.GS
+      // ========================================
+
+      google.script.run
+
+        .withSuccessHandler(
+          function(datos) {
+
+            botonEnviar.disabled = false;
+            botonMicrofono.disabled = false;
 
 
-        ultimo.innerHTML =
-          "<strong>IJA:</strong> " +
-          "No pude conectarme con el motor.";
+            console.log(
+              "Respuesta de Index.gs:",
+              datos
+            );
 
-      }
+
+            if (
+              datos &&
+              datos.ok
+            ) {
+
+              mensajeEspera.innerHTML =
+                "<strong>IJA:</strong> " +
+                escaparHTML(
+                  datos.respuesta || ""
+                );
+
+
+              if (datos.respuesta) {
+
+                hablar(
+                  datos.respuesta
+                );
+
+              }
+
+              if (modoConversacion) {
+
+                estadoVoz.textContent =
+                  "Te escucho.";
+
+              }
+
+            } else {
+
+              mensajeEspera.innerHTML =
+                "<strong>IJA:</strong> " +
+                escaparHTML(
+                  datos && datos.mensaje
+                    ? datos.mensaje
+                    : "IJA tuvo un problema."
+                );
+
+            }
+
+          }
+        )
+
+        .withFailureHandler(
+          function(error) {
+
+            botonEnviar.disabled = false;
+            botonMicrofono.disabled = false;
+
+
+            console.error(
+              "Error de Index.gs:",
+              error
+            );
+
+
+            mensajeEspera.innerHTML =
+              "<strong>IJA:</strong> " +
+              "Error de comunicación con el servidor.";
+
+
+            if (modoConversacion) {
+
+              estadoVoz.textContent =
+                "Ocurrió un problema.";
+
+            }
+
+          }
+        )
+
+        .procesarMensajeDesdeHTML(
+          mensaje
+        );
 
     }
 
+
+    // ==========================================
+    // AGREGAR MENSAJE
+    // ==========================================
 
     function agregarMensaje(
       nombre,
@@ -576,9 +605,9 @@
 
       div.innerHTML =
         "<strong>" +
-        nombre +
+        escaparHTML(nombre) +
         ":</strong> " +
-        contenido;
+        escaparHTML(contenido);
 
 
       chat.appendChild(
@@ -589,8 +618,36 @@
       chat.scrollTop =
         chat.scrollHeight;
 
+
+      return div;
+
     }
 
+
+    // ==========================================
+    // SEGURIDAD PARA TEXTO RECIBIDO
+    // ==========================================
+
+    function escaparHTML(texto) {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+      div.textContent =
+        texto == null
+          ? ""
+          : String(texto);
+
+      return div.innerHTML;
+
+    }
+
+
+    // ==========================================
+    // VOZ DE IJA
+    // ==========================================
 
     function hablar(mensaje) {
 
@@ -666,6 +723,10 @@
     }
 
 
+    // ==========================================
+    // MODO VOZ
+    // ==========================================
+
     function entrarModoVoz() {
 
       modoConversacion =
@@ -703,44 +764,33 @@
     }
 
 
+    // ==========================================
+    // AVATAR
+    // ==========================================
+
     avatar.addEventListener(
       "click",
       function() {
 
-        if (!reconocimiento) {
-
-          return;
-
-        }
-
-
-        if (escuchando) {
-
-          reconocimiento.stop();
-
-        } else {
-
-          try {
-
-            reconocimiento.start();
-
-          } catch (error) {
-
-            console.log(error);
-
-          }
-
-        }
+        alternarMicrofono();
 
       }
     );
 
 
+    // ==========================================
+    // ENTER
+    // ==========================================
+
     texto.addEventListener(
       "keydown",
       function(event) {
 
-        if (event.key === "Enter") {
+        if (
+          event.key === "Enter"
+        ) {
+
+          event.preventDefault();
 
           enviarMensaje();
 
@@ -749,6 +799,10 @@
       }
     );
 
+
+    // ==========================================
+    // INICIO
+    // ==========================================
 
     window.addEventListener(
       "load",
