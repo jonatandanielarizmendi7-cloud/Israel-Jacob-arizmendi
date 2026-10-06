@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>Next</title>
 
   <style>
-    html, body {
+
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -116,6 +125,10 @@
       font-size: 22px;
     }
 
+    button:disabled {
+      opacity: 0.5;
+    }
+
     .modoVoz {
       position: fixed;
       inset: 0;
@@ -153,9 +166,6 @@
 
     .avatar.escuchando {
       transform: scale(1.08);
-      box-shadow:
-        0 0 0 15px rgba(0, 0, 0, 0.05),
-        0 8px 30px rgba(0, 0, 0, 0.15);
     }
 
     .avatar.hablando {
@@ -163,6 +173,7 @@
     }
 
     @keyframes hablar {
+
       from {
         transform: scale(1);
       }
@@ -170,6 +181,7 @@
       to {
         transform: scale(1.06);
       }
+
     }
 
     .estadoVoz {
@@ -191,10 +203,14 @@
       font-size: 24px;
       cursor: pointer;
     }
+
   </style>
+
 </head>
 
+
 <body>
+
 
   <div class="app">
 
@@ -211,7 +227,8 @@
         <button
           id="botonMicrofono"
           class="boton microfono"
-          onclick="alternarMicrofono()">
+          onclick="alternarMicrofono()"
+        >
           🎙️
         </button>
 
@@ -219,12 +236,14 @@
           id="texto"
           type="text"
           placeholder="Escribe o habla con Next..."
-          autocomplete="off">
+          autocomplete="off"
+        >
 
         <button
           id="botonEnviar"
           class="boton enviar"
-          onclick="enviarMensaje()">
+          onclick="enviarMensaje()"
+        >
           ➤
         </button>
 
@@ -241,17 +260,24 @@
       Next
     </div>
 
-    <div id="avatar" class="avatar">
+    <div
+      id="avatar"
+      class="avatar"
+    >
       N
     </div>
 
-    <div id="estadoVoz" class="estadoVoz">
+    <div
+      id="estadoVoz"
+      class="estadoVoz"
+    >
       Toca el micrófono para hablar
     </div>
 
     <button
       class="botonSalir"
-      onclick="salirModoVoz()">
+      onclick="salirModoVoz()"
+    >
       ✕
     </button>
 
@@ -259,6 +285,23 @@
 
 
   <script>
+
+    /*
+     * =====================================================
+     * URL DE GOOGLE APPS SCRIPT
+     * =====================================================
+     *
+     * PEGA AQUÍ TU URL TERMINADA EN /exec
+     *
+     * Ejemplo:
+     *
+     * https://script.google.com/macros/s/XXXXXXXX/exec
+     *
+     */
+
+    const URL_APPS_SCRIPT =
+      "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+
 
     let reconocimiento = null;
     let escuchando = false;
@@ -287,9 +330,11 @@
       document.getElementById("estadoVoz");
 
 
-    // ==========================================
-    // RECONOCIMIENTO DE VOZ
-    // ==========================================
+    /*
+     * =====================================================
+     * RECONOCIMIENTO DE VOZ
+     * =====================================================
+     */
 
     const SpeechRecognition =
       window.SpeechRecognition ||
@@ -406,9 +451,11 @@
     }
 
 
-    // ==========================================
-    // MICRÓFONO
-    // ==========================================
+    /*
+     * =====================================================
+     * MICRÓFONO
+     * =====================================================
+     */
 
     function alternarMicrofono() {
 
@@ -448,17 +495,33 @@
     }
 
 
-    // ==========================================
-    // ENVIAR MENSAJE
-    // ==========================================
+    /*
+     * =====================================================
+     * ENVIAR MENSAJE A APPS SCRIPT
+     * =====================================================
+     */
 
-    function enviarMensaje() {
+    async function enviarMensaje() {
 
       const mensaje =
         texto.value.trim();
 
 
       if (!mensaje) {
+        return;
+      }
+
+
+      if (
+        URL_APPS_SCRIPT ===
+        "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT"
+      ) {
+
+        agregarMensaje(
+          "IJA",
+          "Falta configurar la URL de Apps Script.",
+          "ija"
+        );
 
         return;
 
@@ -483,109 +546,125 @@
         );
 
 
-      botonEnviar.disabled = true;
-      botonMicrofono.disabled = true;
+      botonEnviar.disabled =
+        true;
+
+      botonMicrofono.disabled =
+        true;
 
 
-      // ========================================
-      // COMUNICACIÓN DIRECTA CON INDEX.GS
-      // ========================================
+      try {
 
-      google.script.run
+        const respuestaHTTP =
+          await fetch(
+            URL_APPS_SCRIPT,
+            {
+              method: "POST",
 
-        .withSuccessHandler(
-          function(datos) {
+              headers: {
+                "Content-Type":
+                  "text/plain;charset=utf-8"
+              },
 
-            botonEnviar.disabled = false;
-            botonMicrofono.disabled = false;
-
-
-            console.log(
-              "Respuesta de Index.gs:",
-              datos
-            );
-
-
-            if (
-              datos &&
-              datos.ok
-            ) {
-
-              mensajeEspera.innerHTML =
-                "<strong>IJA:</strong> " +
-                escaparHTML(
-                  datos.respuesta || ""
-                );
-
-
-              if (datos.respuesta) {
-
-                hablar(
-                  datos.respuesta
-                );
-
-              }
-
-              if (modoConversacion) {
-
-                estadoVoz.textContent =
-                  "Te escucho.";
-
-              }
-
-            } else {
-
-              mensajeEspera.innerHTML =
-                "<strong>IJA:</strong> " +
-                escaparHTML(
-                  datos && datos.mensaje
-                    ? datos.mensaje
-                    : "IJA tuvo un problema."
-                );
-
+              body: JSON.stringify({
+                mensaje: mensaje
+              })
             }
-
-          }
-        )
-
-        .withFailureHandler(
-          function(error) {
-
-            botonEnviar.disabled = false;
-            botonMicrofono.disabled = false;
+          );
 
 
-            console.error(
-              "Error de Index.gs:",
-              error
-            );
+        if (!respuestaHTTP.ok) {
+
+          throw new Error(
+            "HTTP " +
+            respuestaHTTP.status
+          );
+
+        }
 
 
-            mensajeEspera.innerHTML =
-              "<strong>IJA:</strong> " +
-              "Error de comunicación con el servidor.";
+        const datos =
+          await respuestaHTTP.json();
 
 
-            if (modoConversacion) {
-
-              estadoVoz.textContent =
-                "Ocurrió un problema.";
-
-            }
-
-          }
-        )
-
-        .procesarMensajeDesdeHTML(
-          mensaje
+        console.log(
+          "Respuesta de Apps Script:",
+          datos
         );
+
+
+        if (datos.ok) {
+
+          mensajeEspera.innerHTML =
+            "<strong>IJA:</strong> " +
+            escaparHTML(
+              datos.respuesta || ""
+            );
+
+
+          if (datos.respuesta) {
+
+            hablar(
+              datos.respuesta
+            );
+
+          }
+
+
+          if (modoConversacion) {
+
+            estadoVoz.textContent =
+              "Te escucho.";
+
+          }
+
+        } else {
+
+          mensajeEspera.innerHTML =
+            "<strong>IJA:</strong> " +
+            escaparHTML(
+              datos.mensaje ||
+              "IJA tuvo un problema."
+            );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error de conexión:",
+          error
+        );
+
+
+        mensajeEspera.innerHTML =
+          "<strong>IJA:</strong> " +
+          "No pude comunicarme con el servidor.";
+
+        if (modoConversacion) {
+
+          estadoVoz.textContent =
+            "Ocurrió un problema de conexión.";
+
+        }
+
+      }
+
+
+      botonEnviar.disabled =
+        false;
+
+      botonMicrofono.disabled =
+        false;
 
     }
 
 
-    // ==========================================
-    // AGREGAR MENSAJE
-    // ==========================================
+    /*
+     * =====================================================
+     * AGREGAR MENSAJE
+     * =====================================================
+     */
 
     function agregarMensaje(
       nombre,
@@ -624,9 +703,11 @@
     }
 
 
-    // ==========================================
-    // SEGURIDAD PARA TEXTO RECIBIDO
-    // ==========================================
+    /*
+     * =====================================================
+     * SEGURIDAD
+     * =====================================================
+     */
 
     function escaparHTML(texto) {
 
@@ -645,9 +726,11 @@
     }
 
 
-    // ==========================================
-    // VOZ DE IJA
-    // ==========================================
+    /*
+     * =====================================================
+     * VOZ DE IJA
+     * =====================================================
+     */
 
     function hablar(mensaje) {
 
@@ -692,7 +775,7 @@
             );
 
             estadoVoz.textContent =
-              "Next está hablando...";
+              "IJA está hablando...";
 
           }
 
@@ -723,9 +806,11 @@
     }
 
 
-    // ==========================================
-    // MODO VOZ
-    // ==========================================
+    /*
+     * =====================================================
+     * MODO VOZ
+     * =====================================================
+     */
 
     function entrarModoVoz() {
 
@@ -759,14 +844,17 @@
         "hablando"
       );
 
-      window.speechSynthesis.cancel();
+
+      if (
+        "speechSynthesis" in window
+      ) {
+
+        window.speechSynthesis.cancel();
+
+      }
 
     }
 
-
-    // ==========================================
-    // AVATAR
-    // ==========================================
 
     avatar.addEventListener(
       "click",
@@ -777,10 +865,6 @@
       }
     );
 
-
-    // ==========================================
-    // ENTER
-    // ==========================================
 
     texto.addEventListener(
       "keydown",
@@ -800,13 +884,15 @@
     );
 
 
-    // ==========================================
-    // INICIO
-    // ==========================================
-
     window.addEventListener(
       "load",
       function() {
+
+        agregarMensaje(
+          "IJA",
+          "Hola. Estoy listo para comunicarme contigo.",
+          "ija"
+        );
 
         console.log(
           "Next está listo."
@@ -818,4 +904,5 @@
   </script>
 
 </body>
+
 </html>
