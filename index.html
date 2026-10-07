@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Next</title>
-
-<style>
+<title>Next</title><style>
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -77,7 +75,7 @@ body {
   background: white;
   color: #111827;
   border-bottom-left-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .name {
@@ -98,7 +96,7 @@ body {
   background: white;
   border-radius: 30px;
   padding: 6px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 #texto {
@@ -116,26 +114,25 @@ button {
   cursor: pointer;
 }
 
-.microfono {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #111827;
-  color: white;
-  font-size: 21px;
-}
-
-.microfono.escuchando {
-  background: #dc2626;
-}
-
+.microfono,
 .enviar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   background: #111827;
   color: white;
+}
+
+.microfono {
+  font-size: 21px;
+}
+
+.enviar {
   font-size: 20px;
+}
+
+.microfono.escuchando {
+  background: #dc2626;
 }
 
 button:disabled {
@@ -152,62 +149,41 @@ button:disabled {
   margin-bottom: 8px;
   color: #111827;
 }
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-  <div class="header">
+</style></head><body><div class="app">  <div class="header">
     Next
-  </div>
-
-  <div id="estado" class="status">
+  </div>  <div id="estado" class="status">
     IJA está iniciando...
-  </div>
+  </div>  <div id="chat" class="chat"><div class="bienvenida">
+  <h1>IJA</h1>
+  <div>Israel Jacob Arizmendi</div>
+</div>
 
-  <div id="chat" class="chat">
+  </div>  <div class="input-area"><div class="input-box">
 
-    <div class="bienvenida">
-      <h1>IJA</h1>
-      <div>Israel Jacob Arizmendi</div>
-    </div>
+  <button
+    id="microfono"
+    class="microfono"
+    type="button"
+    onclick="alternarMicrofono()"
+  >🎙️</button>
 
-  </div>
+  <input
+    id="texto"
+    type="text"
+    placeholder="Escribe o habla con IJA..."
+    autocomplete="off"
+  >
 
-  <div class="input-area">
-
-    <div class="input-box">
-
-      <button
-        id="microfono"
-        class="microfono"
-        type="button"
-        onclick="alternarMicrofono()"
-      >🎙️</button>
-
-      <input
-        id="texto"
-        type="text"
-        placeholder="Escribe o habla con IJA..."
-        autocomplete="off"
-      >
-
-      <button
-        id="enviar"
-        class="enviar"
-        type="button"
-        onclick="enviarMensaje()"
-      >➤</button>
-
-    </div>
-
-  </div>
+  <button
+    id="enviar"
+    class="enviar"
+    type="button"
+    onclick="enviarMensaje()"
+  >➤</button>
 
 </div>
 
-<script>
+  </div></div><script>
 
 const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
 
@@ -219,6 +195,89 @@ const estado = document.getElementById("estado");
 
 let reconocimiento = null;
 let escuchando = false;
+let vocesDisponibles = [];
+
+function cargarVoces() {
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+
+  vocesDisponibles = speechSynthesis.getVoices();
+}
+
+function seleccionarVoz() {
+  if (!vocesDisponibles.length) {
+    return null;
+  }
+
+  const vozEspanol = vocesDisponibles.find(function(voz) {
+    return voz.lang &&
+      voz.lang.toLowerCase().startsWith("es");
+  });
+
+  return vozEspanol || vocesDisponibles[0];
+}
+
+function hablar(mensaje) {
+  if (!("speechSynthesis" in window)) {
+    estado.textContent = "La voz no está disponible";
+    return;
+  }
+
+  if (!mensaje) {
+    return;
+  }
+
+  speechSynthesis.cancel();
+
+  const voz = new SpeechSynthesisUtterance(mensaje);
+  const vozSeleccionada = seleccionarVoz();
+
+  if (vozSeleccionada) {
+    voz.voice = vozSeleccionada;
+  }
+
+  voz.lang = "es-ES";
+  voz.rate = 0.95;
+  voz.pitch = 1;
+  voz.volume = 1;
+
+  voz.onstart = function() {
+    estado.textContent = "IJA está hablando";
+  };
+
+  voz.onend = function() {
+    estado.textContent = "IJA está listo";
+  };
+
+  voz.onerror = function() {
+    estado.textContent = "IJA está listo";
+  };
+
+  speechSynthesis.speak(voz);
+}
+
+function saludoInicial() {
+  const mensaje = "Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.";
+
+  agregarMensaje(
+    "IJA",
+    mensaje,
+    "ija"
+  );
+
+  hablar(mensaje);
+}
+
+function activarVozPorInteraccion() {
+  const mensaje = "Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.";
+
+  if (speechSynthesis.speaking) {
+    return;
+  }
+
+  hablar(mensaje);
+}
 
 function agregarMensaje(nombre, mensaje, tipo) {
   const elemento = document.createElement("div");
@@ -247,7 +306,13 @@ async function enviarMensaje() {
     return;
   }
 
-  agregarMensaje("Tú", mensaje, "user");
+  activarVozPorInteraccion();
+
+  agregarMensaje(
+    "Tú",
+    mensaje,
+    "user"
+  );
 
   texto.value = "";
 
@@ -290,13 +355,13 @@ async function enviarMensaje() {
       );
     }
 
-    respuestaElemento.textContent =
-      datos.respuesta || "";
+    const respuesta = datos.respuesta || "";
 
-    estado.textContent =
-      "IJA está conectado";
+    respuestaElemento.textContent = respuesta;
 
-    hablar(datos.respuesta || "");
+    estado.textContent = "IJA está conectado";
+
+    hablar(respuesta);
 
   } catch (error) {
     console.error(error);
@@ -314,24 +379,6 @@ async function enviarMensaje() {
   }
 }
 
-function hablar(mensaje) {
-  if (!("speechSynthesis" in window)) {
-    return;
-  }
-
-  speechSynthesis.cancel();
-
-  const voz =
-    new SpeechSynthesisUtterance(mensaje);
-
-  voz.lang = "es-ES";
-  voz.rate = 0.95;
-  voz.pitch = 1;
-  voz.volume = 1;
-
-  speechSynthesis.speak(voz);
-}
-
 function prepararReconocimiento() {
   const SpeechRecognition =
     window.SpeechRecognition ||
@@ -340,4 +387,118 @@ function prepararReconocimiento() {
   if (!SpeechRecognition) {
     estado.textContent =
       "IJA está listo para escribir";
-   
+    return;
+  }
+
+  reconocimiento =
+    new SpeechRecognition();
+
+  reconocimiento.lang = "es-ES";
+  reconocimiento.continuous = false;
+  reconocimiento.interimResults = false;
+  reconocimiento.maxAlternatives = 1;
+
+  reconocimiento.onstart = function() {
+    escuchando = true;
+    microfono.classList.add("escuchando");
+    estado.textContent =
+      "Te estoy escuchando...";
+  };
+
+  reconocimiento.onresult = function(event) {
+    const resultado =
+      event.results[0][0].transcript.trim();
+
+    texto.value = resultado;
+
+    enviarMensaje();
+  };
+
+  reconocimiento.onerror = function() {
+    escuchando = false;
+    microfono.classList.remove("escuchando");
+    estado.textContent =
+      "No pude escucharte.";
+  };
+
+  reconocimiento.onend = function() {
+    escuchando = false;
+    microfono.classList.remove("escuchando");
+
+    if (
+      estado.textContent ===
+      "Te estoy escuchando..."
+    ) {
+      estado.textContent =
+        "IJA está listo";
+    }
+  };
+}
+
+function alternarMicrofono() {
+  activarVozPorInteraccion();
+
+  if (!reconocimiento) {
+    alert(
+      "El reconocimiento de voz no está disponible."
+    );
+    return;
+  }
+
+  if (escuchando) {
+    reconocimiento.stop();
+    return;
+  }
+
+  try {
+    reconocimiento.start();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+texto.addEventListener(
+  "keydown",
+  function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      enviarMensaje();
+    }
+  }
+);
+
+document.addEventListener(
+  "click",
+  function() {
+    activarVozPorInteraccion();
+  },
+  { once: true }
+);
+
+window.addEventListener(
+  "load",
+  function() {
+    cargarVoces();
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.onvoiceschanged = function() {
+        cargarVoces();
+      };
+    }
+
+    prepararReconocimiento();
+
+    estado.textContent =
+      "IJA está listo";
+
+    setTimeout(
+      function() {
+        saludoInicial();
+      },
+      500
+    );
+  }
+);
+
+</script></body>
+</html>
