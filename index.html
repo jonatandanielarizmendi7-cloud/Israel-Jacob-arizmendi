@@ -3,7 +3,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Next</title><style>
-* {
+{
   box-sizing: border-box;
 }
 
@@ -364,13 +364,14 @@ async function enviarMensaje() {
     hablar(respuesta);
 
   } catch (error) {
-    console.error(error);
+  console.error(error);
 
-    respuestaElemento.textContent =
-      "No pude conectarme con el motor.";
+  respuestaElemento.textContent =
+    error.message || "No pude conectarme con el motor.";
 
-    estado.textContent =
-      "Error de conexión";
+  estado.textContent =
+    "Error del motor";
+  }
 
   } finally {
     enviar.disabled = false;
