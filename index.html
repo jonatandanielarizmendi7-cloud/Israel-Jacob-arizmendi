@@ -1,9 +1,13 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Next</title>  <style>
-    html, body {
+  <title>Next</title>
+
+  <style>
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -30,6 +34,7 @@
       padding: 10px;
       text-align: center;
       font-size: 14px;
+      color: #555555;
     }
 
     #chat {
@@ -41,6 +46,7 @@
     .mensaje {
       margin-bottom: 16px;
       line-height: 1.5;
+      word-wrap: break-word;
     }
 
     #controles {
@@ -65,23 +71,46 @@
       border: 0;
       border-radius: 10px;
       font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #microfono {
+      background: #eeeeee;
     }
 
     #enviar {
       background: #111111;
       color: #ffffff;
     }
-  </style></head><body>  <header>Next</header>  <div id="estado">IJA está iniciando...</div>  <main id="chat"></main>  <div id="controles">
+  </style>
+</head>
+
+<body>
+  <header>Next</header>
+
+  <div id="estado">IJA está iniciando...</div>
+
+  <main id="chat"></main>
+
+  <div id="controles">
     <input
       id="entrada"
       type="text"
       placeholder="Escribe tu mensaje"
       autocomplete="off"
-    ><button id="microfono" type="button">🎙️</button>
+    >
 
-<button id="enviar" type="button">Enviar</button>
+    <button id="microfono" type="button">🎙️</button>
 
-  </div>  <script>
+    <button id="enviar" type="button">Enviar</button>
+  </div>
+
+  <script>
     const URL_APPS_SCRIPT =
       "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
 
@@ -90,6 +119,8 @@
     const enviar = document.getElementById("enviar");
     const microfono = document.getElementById("microfono");
     const estado = document.getElementById("estado");
+
+    let enviando = false;
 
     function agregarMensaje(nombre, texto) {
       const elemento = document.createElement("div");
@@ -110,7 +141,8 @@
 
     function hablar(texto) {
       if (!("speechSynthesis" in window)) {
-        estado.textContent = "La voz no está disponible en este navegador.";
+        estado.textContent =
+          "IJA está listo. La voz no está disponible.";
         return;
       }
 
@@ -132,7 +164,7 @@
       };
 
       voz.onerror = function() {
-        estado.textContent = "La voz tuvo un problema.";
+        estado.textContent = "IJA está listo.";
       };
 
       window.speechSynthesis.speak(voz);
@@ -150,86 +182,103 @@
     }
 
     async function enviarMensaje() {
+      if (enviando) {
+        return;
+      }
+
       const mensaje = entrada.value.trim();
 
       if (!mensaje) {
         return;
       }
 
+      enviando = true;
+      enviar.disabled = true;
+      entrada.disabled = true;
+
       agregarMensaje("Tú", mensaje);
 
       entrada.value = "";
-
       estado.textContent = "IJA está pensando...";
 
       try {
-        const respuestaHTTP = await fetch(
-          URL_APPS_SCRIPT,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify({
-              mensaje: mensaje
-            })
-          }
-        );
+        const respuestaHTTP = await fetch(URL_APPS_SCRIPT, {
+          method: "POST",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            mensaje: mensaje
+          })
+        });
 
         const texto = await respuestaHTTP.text();
+
+        if (!respuestaHTTP.ok) {
+          throw new Error(
+            "El backend respondió HTTP " +
+            respuestaHTTP.status +
+            ". " +
+            texto
+          );
+        }
 
         let datos;
 
         try {
           datos = JSON.parse(texto);
-        } catch (error) {
+        } catch (errorJSON) {
           throw new Error(
-            "Apps Script no devolvió JSON válido."
+            "Apps Script no devolvió JSON válido: " +
+            texto.substring(0, 200)
           );
         }
 
         if (!datos.ok) {
           throw new Error(
-            datos.mensaje || "IJA no pudo responder."
+            datos.mensaje ||
+            "IJA no pudo responder."
           );
         }
 
-        agregarMensaje("IJA", datos.respuesta);
+        const respuesta = datos.respuesta || "IJA no devolvió texto.";
 
-        hablar(datos.respuesta);
+        agregarMensaje("IJA", respuesta);
+        hablar(respuesta);
 
       } catch (error) {
         agregarMensaje(
           "IJA",
+          "No se pudo conectar con Apps Script. " +
           error.message
         );
 
         estado.textContent =
-          "No se pudo conectar con el motor.";
+          "Revisa la conexión con el backend.";
+      } finally {
+        enviando = false;
+        enviar.disabled = false;
+        entrada.disabled = false;
+        entrada.focus();
       }
     }
 
-    enviar.addEventListener(
-      "click",
-      enviarMensaje
-    );
+    enviar.addEventListener("click", enviarMensaje);
 
-    entrada.addEventListener(
-      "keydown",
-      function(evento) {
-        if (evento.key === "Enter") {
-          enviarMensaje();
-        }
+    entrada.addEventListener("keydown", function(evento) {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        enviarMensaje();
       }
-    );
+    });
 
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
 
     if (SpeechRecognition) {
-      const reconocimiento =
-        new SpeechRecognition();
+      const reconocimiento = new SpeechRecognition();
 
       reconocimiento.lang = "es-ES";
       reconocimiento.continuous = false;
@@ -244,7 +293,6 @@
           evento.results[0][0].transcript;
 
         entrada.value = texto;
-
         enviarMensaje();
       };
 
@@ -254,38 +302,32 @@
       };
 
       reconocimiento.onend = function() {
-        if (
-          estado.textContent === "Escuchando..."
-        ) {
+        if (estado.textContent === "Escuchando...") {
           estado.textContent = "IJA está listo.";
         }
       };
 
-      microfono.addEventListener(
-        "click",
-        function() {
-          try {
-            reconocimiento.start();
-          } catch (error) {
-            reconocimiento.stop();
+      microfono.addEventListener("click", function() {
+        try {
+          reconocimiento.start();
+        } catch (error) {
+          reconocimiento.stop();
 
-            setTimeout(function() {
-              reconocimiento.start();
-            }, 300);
-          }
+          setTimeout(function() {
+            reconocimiento.start();
+          }, 300);
         }
-      );
+      });
+
     } else {
       microfono.disabled = true;
-      estado.textContent =
+      microfono.title =
         "El reconocimiento de voz no está disponible.";
     }
 
-    window.addEventListener(
-      "load",
-      function() {
-        saludoInicial();
-      }
-    );
-  </script></body>
+    window.addEventListener("load", function() {
+      saludoInicial();
+    });
+  </script>
+</body>
 </html>
