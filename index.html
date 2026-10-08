@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Next</title>
-
-  <style>
+  <title>Next</title>  <style>
     html, body {
       margin: 0;
       padding: 0;
@@ -30,90 +27,61 @@
     }
 
     #estado {
-      padding: 10px 20px;
+      padding: 10px;
       text-align: center;
       font-size: 14px;
-      color: #555555;
     }
 
     #chat {
       flex: 1;
       overflow-y: auto;
       padding: 20px;
-      box-sizing: border-box;
     }
 
     .mensaje {
-      margin-bottom: 15px;
+      margin-bottom: 16px;
       line-height: 1.5;
-    }
-
-    .usuario {
-      font-weight: bold;
-    }
-
-    .ija {
-      font-weight: bold;
     }
 
     #controles {
       display: flex;
-      gap: 10px;
-      padding: 15px;
+      gap: 8px;
+      padding: 12px;
       border-top: 1px solid #dddddd;
-      box-sizing: border-box;
     }
 
     #entrada {
       flex: 1;
-      padding: 14px;
+      min-width: 0;
+      padding: 13px;
       font-size: 16px;
       border: 1px solid #cccccc;
       border-radius: 10px;
-      outline: none;
+      box-sizing: border-box;
     }
 
     button {
-      border: none;
+      padding: 13px;
+      border: 0;
       border-radius: 10px;
-      padding: 14px 18px;
       font-size: 16px;
-      cursor: pointer;
-    }
-
-    #microfono {
-      background: #eeeeee;
     }
 
     #enviar {
       background: #111111;
       color: #ffffff;
     }
-  </style>
-</head>
-
-<body>
-
-  <header>Next</header>
-
-  <div id="estado">IJA está iniciando...</div>
-
-  <main id="chat"></main>
-
-  <div id="controles">
+  </style></head><body>  <header>Next</header>  <div id="estado">IJA está iniciando...</div>  <main id="chat"></main>  <div id="controles">
     <input
       id="entrada"
       type="text"
       placeholder="Escribe tu mensaje"
       autocomplete="off"
-    >
+    ><button id="microfono" type="button">🎙️</button>
 
-    <button id="microfono" type="button">🎙️</button>
+<button id="enviar" type="button">Enviar</button>
 
-    <button id="enviar" type="button">Enviar</button>
-  </div>
-
-  <script>
+  </div>  <script>
     const URL_APPS_SCRIPT =
       "https://script.google.com/macros/s/AKfycbye3sx1VouZkoUsg3ixkIgvEbpKbiNqLs_tkA9IicNpq74PHJM4baP4jL6dWUqj7n-l/exec";
 
@@ -123,11 +91,11 @@
     const microfono = document.getElementById("microfono");
     const estado = document.getElementById("estado");
 
-    function agregarMensaje(nombre, texto, clase) {
+    function agregarMensaje(nombre, texto) {
       const elemento = document.createElement("div");
-      elemento.className = "mensaje " + clase;
+      elemento.className = "mensaje";
 
-      const nombreElemento = document.createElement("span");
+      const nombreElemento = document.createElement("strong");
       nombreElemento.textContent = nombre + ": ";
 
       const textoElemento = document.createElement("span");
@@ -142,17 +110,43 @@
 
     function hablar(texto) {
       if (!("speechSynthesis" in window)) {
+        estado.textContent = "La voz no está disponible en este navegador.";
         return;
       }
 
       window.speechSynthesis.cancel();
 
       const voz = new SpeechSynthesisUtterance(texto);
+
       voz.lang = "es-ES";
       voz.rate = 1;
       voz.pitch = 1;
+      voz.volume = 1;
+
+      voz.onstart = function() {
+        estado.textContent = "IJA está hablando...";
+      };
+
+      voz.onend = function() {
+        estado.textContent = "IJA está listo.";
+      };
+
+      voz.onerror = function() {
+        estado.textContent = "La voz tuvo un problema.";
+      };
 
       window.speechSynthesis.speak(voz);
+    }
+
+    function saludoInicial() {
+      const saludo =
+        "Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.";
+
+      agregarMensaje("IJA", saludo);
+
+      setTimeout(function() {
+        hablar(saludo);
+      }, 500);
     }
 
     async function enviarMensaje() {
@@ -162,9 +156,10 @@
         return;
       }
 
-      agregarMensaje("Tú", mensaje, "usuario");
+      agregarMensaje("Tú", mensaje);
 
       entrada.value = "";
+
       estado.textContent = "IJA está pensando...";
 
       try {
@@ -189,31 +184,28 @@
           datos = JSON.parse(texto);
         } catch (error) {
           throw new Error(
-            "El servidor no devolvió una respuesta válida."
+            "Apps Script no devolvió JSON válido."
           );
         }
 
         if (!datos.ok) {
           throw new Error(
-            datos.mensaje || "El motor no pudo responder."
+            datos.mensaje || "IJA no pudo responder."
           );
         }
 
-        const respuesta = datos.respuesta || "";
+        agregarMensaje("IJA", datos.respuesta);
 
-        agregarMensaje("IJA", respuesta, "ija");
-        hablar(respuesta);
-
-        estado.textContent = "IJA está conectado.";
+        hablar(datos.respuesta);
 
       } catch (error) {
         agregarMensaje(
           "IJA",
-          error.message,
-          "ija"
+          error.message
         );
 
-        estado.textContent = "Error de conexión con el motor.";
+        estado.textContent =
+          "No se pudo conectar con el motor.";
       }
     }
 
@@ -262,17 +254,27 @@
       };
 
       reconocimiento.onend = function() {
-        estado.textContent =
-          "IJA está listo.";
+        if (
+          estado.textContent === "Escuchando..."
+        ) {
+          estado.textContent = "IJA está listo.";
+        }
       };
 
       microfono.addEventListener(
         "click",
         function() {
-          reconocimiento.start();
+          try {
+            reconocimiento.start();
+          } catch (error) {
+            reconocimiento.stop();
+
+            setTimeout(function() {
+              reconocimiento.start();
+            }, 300);
+          }
         }
       );
-
     } else {
       microfono.disabled = true;
       estado.textContent =
@@ -282,21 +284,8 @@
     window.addEventListener(
       "load",
       function() {
-        const saludo =
-          "Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.";
-
-        agregarMensaje(
-          "IJA",
-          saludo,
-          "ija"
-        );
-
-        estado.textContent = "IJA está listo.";
-
-        hablar(saludo);
+        saludoInicial();
       }
     );
-  </script>
-
-</body>
+  </script></body>
 </html>
