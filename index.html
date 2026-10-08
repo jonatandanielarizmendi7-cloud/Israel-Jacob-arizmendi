@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Next</title>
+  <title>IJA</title>
 
   <style>
     html,
@@ -91,7 +91,7 @@
 </head>
 
 <body>
-  <header>Next</header>
+  <header>IJA</header>
 
   <div id="estado">IJA está iniciando...</div>
 
@@ -209,7 +209,7 @@
             "Content-Type": "text/plain;charset=utf-8"
           },
           body: JSON.stringify({
-            mensaje: mensaje
+            pregunta: mensaje
           })
         });
 
@@ -237,6 +237,7 @@
 
         if (!datos.ok) {
           throw new Error(
+            datos.error ||
             datos.mensaje ||
             "IJA no pudo responder."
           );
