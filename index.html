@@ -1,434 +1,247 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IJA</title>
-
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #0a0a0a;
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    header {
-      padding: 14px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 4px;
-      border-bottom: 1px solid #222222;
-      color: #4dd0e1;
-    }
-
-    #avatarZona {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px 0 10px 0;
-    }
-
-    #avatar {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 50% 40%, #4dd0e1, #0d47a1);
-      box-shadow: 0 0 25px rgba(77, 208, 225, 0.6);
-      position: relative;
-      transition: all 0.4s ease;
-    }
-
-    #avatar.hablando {
-      animation: pulso 1.2s infinite ease-in-out;
-      box-shadow: 0 0 55px rgba(77, 208, 225, 0.95);
-    }
-
-    #avatar.escuchando {
-      animation: onda 1.6s infinite ease-in-out;
-      box-shadow: 0 0 55px rgba(255, 100, 100, 0.9);
-    }
-
-    #avatar.pensando {
-      animation: girar 2s infinite linear;
-      box-shadow: 0 0 55px rgba(255, 210, 100, 0.9);
-    }
-
-    #avatar::before,
-    #avatar::after {
-      content: "";
-      position: absolute;
-      background: #ffffff;
-      border-radius: 50%;
-    }
-
-    #avatar::before {
-      width: 18px;
-      height: 18px;
-      top: 45px;
-      left: 35px;
-      box-shadow: 40px 0 0 #ffffff;
-    }
-
-    #avatar::after {
-      width: 45px;
-      height: 8px;
-      border-radius: 8px;
-      bottom: 30px;
-      left: 42px;
-      background: #ffffff;
-      transition: all 0.3s ease;
-    }
-
-    #avatar.hablando::after {
-      height: 18px;
-      animation: boca 0.3s infinite alternate;
-    }
-
-    @keyframes pulso {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-    }
-
-    @keyframes onda {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    @keyframes girar {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes boca {
-      0% { height: 8px; }
-      100% { height: 22px; }
-    }
-
-    #estado {
-      padding: 6px;
-      text-align: center;
-      font-size: 13px;
-      color: #888888;
-      letter-spacing: 1px;
-    }
-
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-
-    .mensaje {
-      margin-bottom: 14px;
-      line-height: 1.5;
-      word-wrap: break-word;
-      font-size: 15px;
-    }
-
-    .mensaje strong {
-      color: #4dd0e1;
-    }
-
-    #controles {
-      display: flex;
-      gap: 8px;
-      padding: 12px;
-      border-top: 1px solid #222222;
-      background: #0f0f0f;
-    }
-
-    #entrada {
-      flex: 1;
-      min-width: 0;
-      padding: 13px;
-      font-size: 16px;
-      border: 1px solid #333333;
-      border-radius: 10px;
-      box-sizing: border-box;
-      background: #1a1a1a;
-      color: #ffffff;
-    }
-
-    button {
-      padding: 13px;
-      border: 0;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      color: #ffffff;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #microfono {
-      background: #b71c1c;
-    }
-
-    #enviar {
-      background: #4dd0e1;
-      color: #0a0a0a;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IJA — Israel Jacob Arizmendi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 90vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #1a73e8;
+            text-align: center;
+            margin-top: 0;
+        }
+        #chat-log {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+        .mensaje {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 85%;
+            line-height: 1.4;
+        }
+        .usuario {
+            background: #e3f2fd;
+            color: #0d47a1;
+            margin-left: auto;
+            text-align: right;
+        }
+        .ija {
+            background: #e8f5e9;
+            color: #1b5e20;
+            margin-right: auto;
+        }
+        .controles {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-grupo {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:active {
+            background-color: #1557b0;
+        }
+        #btn-voz {
+            background-color: #34a853;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+        #btn-voz.escuchando {
+            background-color: #ea4335;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
-
 <body>
-  <header>IJA</header>
 
-  <div id="avatarZona">
-    <div id="avatar"></div>
-  </div>
+    <div class="container">
+        <h1>IJA — Núcleo Operativo</h1>
+        
+        <div id="chat-log">
+            <div class="mensaje ija">Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.</div>
+        </div>
 
-  <div id="estado">IJA está iniciando...</div>
+        <div class="controles">
+            <button id="btn-voz" onclick="activarVoz()">🎙️ Hablar con IJA</button>
+            <div class="input-grupo">
+                <input type="text" id="input-texto" placeholder="Escribe tu mensaje aquí..." onkeypress="manejarEnter(event)">
+                <button onclick="enviarMensajeTexto()">Enviar</button>
+            </div>
+        </div>
+    </div>
 
-  <main id="chat"></main>
+    <script>
+        // URL de tu Apps Script configurada
+        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbwTyXy8__TYfmnh3rLldLCnB1qhqeEjtz9qKy8mpNhxrdMPrNk69JXZHhivZIhVVUqy/exec";
 
-  <div id="controles">
-    <input
-      id="entrada"
-      type="text"
-      placeholder="Escribe o habla con IJA"
-      autocomplete="off"
-    >
-
-    <button id="microfono" type="button">🎙️</button>
-
-    <button id="enviar" type="button">Enviar</button>
-  </div>
-
-  <script>
-    const URL_APPS_SCRIPT =
-      "https://script.google.com/macros/s/AKfycbwTyXy8__TYfmnh3rLldLCnB1qhqeEjtz9qKy8mpNhxrdMPrNk69JXZHhivZIhVVUqy/exec";
-
-    const chat = document.getElementById("chat");
-    const entrada = document.getElementById("entrada");
-    const enviar = document.getElementById("enviar");
-    const microfono = document.getElementById("microfono");
-    const estado = document.getElementById("estado");
-    const avatar = document.getElementById("avatar");
-
-    let enviando = false;
-
-    function ponerEstadoAvatar(clase) {
-      avatar.classList.remove("hablando", "escuchando", "pensando");
-      if (clase) {
-        avatar.classList.add(clase);
-      }
-    }
-
-    function agregarMensaje(nombre, texto) {
-      const elemento = document.createElement("div");
-      elemento.className = "mensaje";
-
-      const nombreElemento = document.createElement("strong");
-      nombreElemento.textContent = nombre + ": ";
-
-      const textoElemento = document.createElement("span");
-      textoElemento.textContent = texto;
-
-      elemento.appendChild(nombreElemento);
-      elemento.appendChild(textoElemento);
-
-      chat.appendChild(elemento);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function hablar(texto) {
-      if (!("speechSynthesis" in window)) {
-        estado.textContent = "IJA está listo.";
-        ponerEstadoAvatar(null);
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-
-      const voz = new SpeechSynthesisUtterance(texto);
-      voz.lang = "es-ES";
-      voz.rate = 1;
-      voz.pitch = 1;
-      voz.volume = 1;
-
-      voz.onstart = function() {
-        estado.textContent = "IJA está hablando...";
-        ponerEstadoAvatar("hablando");
-      };
-
-      voz.onend = function() {
-        estado.textContent = "IJA está listo.";
-        ponerEstadoAvatar(null);
-      };
-
-      voz.onerror = function() {
-        estado.textContent = "IJA está listo.";
-        ponerEstadoAvatar(null);
-      };
-
-      window.speechSynthesis.speak(voz);
-    }
-
-    function saludoInicial() {
-      const saludo =
-        "Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.";
-
-      agregarMensaje("IJA", saludo);
-
-      setTimeout(function() {
-        hablar(saludo);
-      }, 500);
-    }
-
-    async function enviarMensaje() {
-      if (enviando) return;
-
-      const mensaje = entrada.value.trim();
-      if (!mensaje) return;
-
-      enviando = true;
-      enviar.disabled = true;
-      entrada.disabled = true;
-
-      agregarMensaje("Tú", mensaje);
-      entrada.value = "";
-      estado.textContent = "IJA está pensando...";
-      ponerEstadoAvatar("pensando");
-
-      try {
-        const respuestaHTTP = await fetch(URL_APPS_SCRIPT, {
-          method: "POST",
-          redirect: "follow",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify({
-            pregunta: mensaje
-          })
-        });
-
-        const texto = await respuestaHTTP.text();
-
-        if (!respuestaHTTP.ok) {
-          throw new Error(
-            "El backend respondió HTTP " +
-            respuestaHTTP.status +
-            ". " +
-            texto
-          );
+        function agregarAlChat(remitente, texto, clase) {
+            const chatLog = document.getElementById('chat-log');
+            const div = document.createElement('div');
+            div.className = "mensaje " + clase;
+            div.innerHTML = `<strong>${remitente}:</strong> ${texto}`;
+            chatLog.appendChild(div);
+            chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        let datos;
-
-        try {
-          datos = JSON.parse(texto);
-        } catch (errorJSON) {
-          throw new Error(
-            "Apps Script no devolvió JSON válido: " +
-            texto.substring(0, 200)
-          );
+        function hablarTexto(texto) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
-        if (!datos.ok) {
-          throw new Error(
-            datos.error ||
-            datos.mensaje ||
-            "IJA no pudo responder."
-          );
+        async function enviarAProtegido(prompt) {
+            if (!prompt.trim()) return;
+
+            agregarAlChat("Tú", prompt, "usuario");
+
+            const chatLog = document.getElementById('chat-log');
+            const cargandoDiv = document.createElement('div');
+            cargandoDiv.className = "mensaje ija";
+            cargandoDiv.id = "cargando-temp";
+            cargandoDiv.innerHTML = `<em>IJA está pensando...</em>`;
+            chatLog.appendChild(cargandoDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            try {
+                const response = await fetch(URL_APPS_SCRIPT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('cargando-temp').remove();
+
+                const respuestaIJA = data.resultado || data.error || "IJA no pudo responder.";
+                agregarAlChat("IJA", respuestaIJA, "ija");
+                hablarTexto(respuestaIJA);
+
+            } catch (error) {
+                const tempEl = document.getElementById('cargando-temp');
+                if(tempEl) tempEl.remove();
+                
+                agregarAlChat("IJA", "No se pudo conectar con Apps Script. IJA no pudo responder", "ija");
+                console.error(error);
+            }
         }
 
-        const respuesta = datos.respuesta || "IJA no devolvió texto.";
-        agregarMensaje("IJA", respuesta);
-        hablar(respuesta);
-
-      } catch (error) {
-        agregarMensaje(
-          "IJA",
-          "No se pudo conectar con Apps Script. " + error.message
-        );
-        estado.textContent = "Revisa la conexión con el backend.";
-        ponerEstadoAvatar(null);
-      } finally {
-        enviando = false;
-        enviar.disabled = false;
-        entrada.disabled = false;
-        entrada.focus();
-      }
-    }
-
-    enviar.addEventListener("click", enviarMensaje);
-
-    entrada.addEventListener("keydown", function(evento) {
-      if (evento.key === "Enter") {
-        evento.preventDefault();
-        enviarMensaje();
-      }
-    });
-
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
-
-    if (SpeechRecognition) {
-      const reconocimiento = new SpeechRecognition();
-      reconocimiento.lang = "es-ES";
-      reconocimiento.continuous = false;
-      reconocimiento.interimResults = false;
-
-      reconocimiento.onstart = function() {
-        estado.textContent = "Escuchando...";
-        ponerEstadoAvatar("escuchando");
-      };
-
-      reconocimiento.onresult = function(evento) {
-        const texto = evento.results[0][0].transcript;
-        entrada.value = texto;
-        enviarMensaje();
-      };
-
-      reconocimiento.onerror = function() {
-        estado.textContent = "No se pudo usar el micrófono.";
-        ponerEstadoAvatar(null);
-      };
-
-      reconocimiento.onend = function() {
-        if (estado.textContent === "Escuchando...") {
-          estado.textContent = "IJA está listo.";
-          ponerEstadoAvatar(null);
+        function enviarMensajeTexto() {
+            const input = document.getElementById('input-texto');
+            const texto = input.value;
+            input.value = "";
+            enviarAProtegido(texto);
         }
-      };
 
-      microfono.addEventListener("click", function() {
-        try {
-          reconocimiento.start();
-        } catch (error) {
-          reconocimiento.stop();
-          setTimeout(function() {
-            reconocimiento.start();
-          }, 300);
+        function manejarEnter(event) {
+            if (event.key === 'Enter') {
+                enviarMensajeTexto();
+            }
         }
-      });
 
-    } else {
-      microfono.disabled = true;
-      microfono.title = "El reconocimiento de voz no está disponible.";
-    }
+        function activarVoz() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert("Tu navegador no soporta el reconocimiento de voz directo. Usa Google Chrome en Android.");
+                return;
+            }
 
-    window.addEventListener("load", function() {
-      saludoInicial();
-    });
-  </script>
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            const btnVoz = document.getElementById('btn-voz');
+            
+            recognition.onstart = function() {
+                btnVoz.classList.add('escuchando');
+                btnVoz.textContent = "🎧 Escuchando...";
+            };
+
+            recognition.onspeechend = function() {
+                recognition.stop();
+            };
+
+            recognition.onresult = function(event) {
+                const textoTranscrito = event.results[0][0].transcript;
+                enviarAProtegido(textoTranscrito);
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Error de voz: ", event.error);
+                btnVoz.classList.remove('escuchando');
+                btnVoz.textContent = "🎙️ Hablar con IJA";
+            };
+
+            recognition.onend = function() {
+                btnVoz.classList.remove('escuchando');
+                btnVoz.textContent = "🎙️ Hablar con IJA";
+            };
+
+            recognition.start();
+        }
+    </script>
 </body>
 </html>
