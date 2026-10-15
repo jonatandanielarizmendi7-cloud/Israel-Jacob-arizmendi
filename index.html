@@ -4,162 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IJA — Israel Jacob Arizmendi</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f9;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            height: 90vh;
+            justify-content: center;
         }
+
         .container {
             width: 100%;
             max-width: 600px;
+            height: calc(100vh - 32px);
+            height: calc(100dvh - 32px);
             background: #fff;
-            padding: 20px;
+            padding: 16px;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
             overflow: hidden;
         }
+
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #1a73e8;
             text-align: center;
-            margin-top: 0;
+            margin: 4px 0 16px;
         }
+
+        #estado {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
         #chat-log {
-            flex-grow: 1;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             background: #fafafa;
         }
+
         .mensaje {
             margin-bottom: 12px;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 8px;
-            max-width: 85%;
-            line-height: 1.4;
+            max-width: 90%;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
         }
+
         .usuario {
             background: #e3f2fd;
             color: #0d47a1;
             margin-left: auto;
-            text-align: right;
         }
+
         .ija {
             background: #e8f5e9;
             color: #1b5e20;
             margin-right: auto;
         }
+
+        .error {
+            background: #ffebee;
+            color: #b71c1c;
+            margin-right: auto;
+        }
+
         .controles {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
+
         .input-grupo {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
+
         input[type="text"] {
-            flex-grow: 1;
+            flex: 1;
+            min-width: 0;
             padding: 12px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 16px;
         }
+
         button {
-            padding: 12px 20px;
+            padding: 12px 16px;
             background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
-            font-weight: bold;
         }
-        button:active {
-            background-color: #1557b0;
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
+
         #btn-voz {
             background-color: #34a853;
             width: 100%;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
+
         #btn-voz.escuchando {
             background-color: #ea4335;
             animation: pulse 1.5s infinite;
         }
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.65; }
         }
     </style>
 </head>
-<body>
 
-    <div class="container">
+<body>
+    <main class="container">
         <h1>IJA — Núcleo Operativo</h1>
-        
-        <div id="chat-log">
-            <div class="mensaje ija">Hola. Soy IJA, Israel Jacob Arizmendi. Estoy listo para comunicarme contigo.</div>
+
+        <div id="estado">Preparando conexión...</div>
+
+        <div id="chat-log" aria-live="polite">
+            <div class="mensaje ija">
+                Hola. Soy IJA, Israel Jacob Arizmendi.
+                Estoy listo para comunicarme contigo.
+            </div>
         </div>
 
         <div class="controles">
-            <button id="btn-voz" onclick="activarVoz()">🎙️ Hablar con IJA</button>
+            <button id="btn-voz" type="button">
+                🎙️ Hablar con IJA
+            </button>
+
             <div class="input-grupo">
-                <input type="text" id="input-texto" placeholder="Escribe tu mensaje aquí..." onkeypress="manejarEnter(event)">
-                <button onclick="enviarMensajeTexto()">Enviar</button>
+                <input
+                    type="text"
+                    id="input-texto"
+                    placeholder="Escribe tu mensaje..."
+                    autocomplete="off"
+                >
+
+                <button id="btn-enviar" type="button">
+                    Enviar
+                </button>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // URL de tu Apps Script configurada
-        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyc9WqYb_skEOFv06va0DQG1SoTyW6udiEOUmDIOI7dlLedPVkYsP6_qnwlC9rr28t2/exec";
+        const URL_APPS_SCRIPT =
+            "https://script.google.com/macros/s/AKfycbyc9WqYb_skEOFv06va0DQG1SoTyW6udiEOUmDIOI7dlLedPVkYsP6_qnwlC9rr28t2/exec";
+
+        const chatLog = document.getElementById("chat-log");
+        const estado = document.getElementById("estado");
+        const inputTexto = document.getElementById("input-texto");
+        const btnEnviar = document.getElementById("btn-enviar");
+        const btnVoz = document.getElementById("btn-voz");
+
+        let enviando = false;
+        let reconocimiento = null;
 
         function agregarAlChat(remitente, texto, clase) {
-            const chatLog = document.getElementById('chat-log');
-            const div = document.createElement('div');
+            const div = document.createElement("div");
             div.className = "mensaje " + clase;
-            div.innerHTML = `<strong>${remitente}:</strong> ${texto}`;
+
+            const nombre = document.createElement("strong");
+            nombre.textContent = remitente + ": ";
+
+            const contenido = document.createElement("span");
+            contenido.textContent = String(texto);
+
+            div.appendChild(nombre);
+            div.appendChild(contenido);
             chatLog.appendChild(div);
+
             chatLog.scrollTop = chatLog.scrollHeight;
+            return div;
         }
 
         function hablarTexto(texto) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(texto);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
+            if (!("speechSynthesis" in window)) return;
+
+            window.speechSynthesis.cancel();
+
+            const voz = new SpeechSynthesisUtterance(texto);
+            voz.lang = "es-ES";
+            voz.rate = 1;
+
+            window.speechSynthesis.speak(voz);
+        }
+
+        async function comprobarConexion() {
+            estado.textContent = "Comprobando servicio...";
+
+            try {
+                const response = await fetch(URL_APPS_SCRIPT);
+                const data = await response.json();
+
+                if (data.ok) {
+                    estado.textContent = "Servicio IJA disponible";
+                } else {
+                    estado.textContent = "El servicio informó un problema";
+                }
+            } catch (error) {
+                estado.textContent =
+                    "No se pudo comprobar la conexión con IJA";
+                console.error("Comprobación:", error);
             }
         }
 
-        async function enviarAProtegido(prompt) {
-            if (!prompt.trim()) return;
+        async function enviarAProtegido(mensaje) {
+            mensaje = String(mensaje || "").trim();
 
-            agregarAlChat("Tú", prompt, "usuario");
+            if (!mensaje || enviando) return;
 
-            const chatLog = document.getElementById('chat-log');
-            const cargandoDiv = document.createElement('div');
-            cargandoDiv.className = "mensaje ija";
-            cargandoDiv.id = "cargando-temp";
-            cargandoDiv.innerHTML = `<em>IJA está pensando...</em>`;
-            chatLog.appendChild(cargandoDiv);
-            chatLog.scrollTop = chatLog.scrollHeight;
+            agregarAlChat("Tú", mensaje, "usuario");
+
+            const cargando = agregarAlChat(
+                "IJA",
+                "Estoy procesando tu mensaje...",
+                "ija"
+            );
+
+            enviando = true;
+            btnEnviar.disabled = true;
+            estado.textContent = "Esperando respuesta del motor...";
 
             try {
                 const response = await fetch(URL_APPS_SCRIPT, {
@@ -167,81 +259,142 @@
                     headers: {
                         "Content-Type": "text/plain;charset=utf-8"
                     },
-                    body: JSON.stringify({ prompt: prompt })
+                    body: JSON.stringify({
+                        mensaje: mensaje
+                    })
                 });
 
                 const data = await response.json();
-                
-                document.getElementById('cargando-temp').remove();
 
-                const respuestaIJA = data.resultado || data.error || "IJA no pudo responder.";
+                if (!response.ok) {
+                    throw new Error(
+                        "Error HTTP " + response.status
+                    );
+                }
+
+                if (!data.ok) {
+                    throw new Error(
+                        data.error ||
+                        data.detalle ||
+                        "El motor no pudo procesar el mensaje."
+                    );
+                }
+
+                const respuestaIJA =
+                    data.respuesta ||
+                    "El motor respondió, pero no devolvió texto.";
+
+                cargando.remove();
+
                 agregarAlChat("IJA", respuestaIJA, "ija");
+                estado.textContent = "Respuesta recibida";
                 hablarTexto(respuestaIJA);
 
             } catch (error) {
-                const tempEl = document.getElementById('cargando-temp');
-                if(tempEl) tempEl.remove();
-                
-                agregarAlChat("IJA", "No se pudo conectar con Apps Script. IJA no pudo responder", "ija");
-                console.error(error);
+                cargando.remove();
+
+                agregarAlChat(
+                    "IJA",
+                    "No pude completar la solicitud. " +
+                    "Detalle: " + error.message,
+                    "error"
+                );
+
+                estado.textContent = "No se pudo completar la solicitud";
+                console.error("Error de conexión:", error);
+
+            } finally {
+                enviando = false;
+                btnEnviar.disabled = false;
+                inputTexto.focus();
             }
         }
 
         function enviarMensajeTexto() {
-            const input = document.getElementById('input-texto');
-            const texto = input.value;
-            input.value = "";
+            const texto = inputTexto.value.trim();
+
+            if (!texto || enviando) return;
+
+            inputTexto.value = "";
             enviarAProtegido(texto);
         }
 
-        function manejarEnter(event) {
-            if (event.key === 'Enter') {
-                enviarMensajeTexto();
-            }
-        }
-
         function activarVoz() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
+            const SpeechRecognition =
+                window.SpeechRecognition ||
+                window.webkitSpeechRecognition;
+
             if (!SpeechRecognition) {
-                alert("Tu navegador no soporta el reconocimiento de voz directo. Usa Google Chrome en Android.");
+                alert(
+                    "El reconocimiento de voz no está disponible " +
+                    "en este navegador. Puedes escribir tu mensaje."
+                );
                 return;
             }
 
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'es-ES';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            if (reconocimiento) {
+                reconocimiento.stop();
+                return;
+            }
 
-            const btnVoz = document.getElementById('btn-voz');
-            
-            recognition.onstart = function() {
-                btnVoz.classList.add('escuchando');
-                btnVoz.textContent = "🎧 Escuchando...";
+            const nuevoReconocimiento = new SpeechRecognition();
+            reconocimiento = nuevoReconocimiento;
+
+            nuevoReconocimiento.lang = "es-ES";
+            nuevoReconocimiento.interimResults = false;
+            nuevoReconocimiento.maxAlternatives = 1;
+
+            btnVoz.classList.add("escuchando");
+            btnVoz.textContent = "🎧 Escuchando...";
+
+            nuevoReconocimiento.onresult = function(event) {
+                const transcripcion =
+                    event.results[0][0].transcript;
+
+                inputTexto.value = transcripcion;
+                enviarAProtegido(transcripcion);
             };
 
-            recognition.onspeechend = function() {
-                recognition.stop();
+            nuevoReconocimiento.onerror = function(event) {
+                console.error("Error de voz:", event.error);
+
+                if (event.error !== "no-speech") {
+                    estado.textContent =
+                        "No se pudo reconocer la voz";
+                }
             };
 
-            recognition.onresult = function(event) {
-                const textoTranscrito = event.results[0][0].transcript;
-                enviarAProtegido(textoTranscrito);
-            };
+            nuevoReconocimiento.onend = function() {
+                if (reconocimiento === nuevoReconocimiento) {
+                    reconocimiento = null;
+                }
 
-            recognition.onerror = function(event) {
-                console.error("Error de voz: ", event.error);
-                btnVoz.classList.remove('escuchando');
+                btnVoz.classList.remove("escuchando");
                 btnVoz.textContent = "🎙️ Hablar con IJA";
             };
 
-            recognition.onend = function() {
-                btnVoz.classList.remove('escuchando');
+            try {
+                nuevoReconocimiento.start();
+            } catch (error) {
+                reconocimiento = null;
+                btnVoz.classList.remove("escuchando");
                 btnVoz.textContent = "🎙️ Hablar con IJA";
-            };
-
-            recognition.start();
+                estado.textContent =
+                    "No se pudo iniciar el micrófono";
+            }
         }
+
+        btnEnviar.addEventListener("click", enviarMensajeTexto);
+
+        inputTexto.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                enviarMensajeTexto();
+            }
+        });
+
+        btnVoz.addEventListener("click", activarVoz);
+
+        comprobarConexion();
     </script>
 </body>
 </html>
