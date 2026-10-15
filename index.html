@@ -281,8 +281,11 @@
                 }
 
                 const respuestaIJA =
-                    data.respuesta ||
-                    "El motor respondió, pero no devolvió texto.";
+    data.detalle ||
+    data.error ||
+    data.respuesta ||
+    data.resultado ||
+    "El motor respondió, pero no devolvió texto.";
 
                 cargando.remove();
 
