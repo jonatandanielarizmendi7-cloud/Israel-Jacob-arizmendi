@@ -1,403 +1,113 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IJA — Israel Jacob Arizmendi</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
+function llamarMotor(mensaje) {
+    return new Promise(function(resolve, reject) {
+        const callback = "ija_cb_" + Date.now() +
+            "_" + Math.floor(Math.random() * 100000);
+
+        const script = document.createElement("script");
+        let terminado = false;
+
+        const temporizador = setTimeout(function() {
+            finalizar();
+            reject(new Error("Tiempo de espera agotado."));
+        }, 30000);
+
+        function finalizar() {
+            if (terminado) return;
+            terminado = true;
+            clearTimeout(temporizador);
+            script.remove();
+            delete window[callback];
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-            margin: 0;
-            padding: 16px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
+        window[callback] = function(data) {
+            finalizar();
+            resolve(data);
+        };
+
+        const parametros = new URLSearchParams();
+        parametros.set("callback", callback);
+
+        if (mensaje) {
+            parametros.set("text", mensaje);
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            height: calc(100vh - 32px);
-            height: calc(100dvh - 32px);
-            background: #fff;
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        script.onerror = function() {
+            finalizar();
+            reject(new Error(
+                "No se pudo cargar la respuesta de Apps Script."
+            ));
+        };
+
+        script.src = URL_APPS_SCRIPT + "?" + parametros.toString();
+        document.body.appendChild(script);
+    });
+}
+
+async function comprobarConexion() {
+    estado.textContent = "Comprobando servicio...";
+
+    try {
+        const data = await llamarMotor("");
+
+        if (!data.ok) {
+            throw new Error(data.error || "El motor informó un problema.");
         }
 
-        h1 {
-            font-size: 1.4rem;
-            color: #1a73e8;
-            text-align: center;
-            margin: 4px 0 16px;
+        estado.textContent = "Servicio IJA disponible";
+    } catch (error) {
+        estado.textContent = "No se pudo comprobar la conexión";
+        console.error("Comprobación:", error);
+    }
+}
+
+async function enviarAProtegido(mensaje) {
+    mensaje = String(mensaje || "").trim();
+
+    if (!mensaje || enviando) return;
+
+    agregarAlChat("Tú", mensaje, "usuario");
+
+    const cargando = agregarAlChat(
+        "IJA", "Estoy procesando tu mensaje...", "ija"
+    );
+
+    enviando = true;
+    btnEnviar.disabled = true;
+    estado.textContent = "Esperando respuesta del motor...";
+
+    try {
+        const data = await llamarMotor(mensaje);
+
+        if (!data.ok) {
+            throw new Error(data.error || "El motor no pudo responder.");
         }
 
-        #estado {
-            text-align: center;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 10px;
+        if (!data.reply) {
+            throw new Error("El motor no devolvió una respuesta.");
         }
 
-        #chat-log {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 14px;
-            background: #fafafa;
-        }
-
-        .mensaje {
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            max-width: 90%;
-            line-height: 1.5;
-            overflow-wrap: anywhere;
-            white-space: pre-wrap;
-        }
-
-        .usuario {
-            background: #e3f2fd;
-            color: #0d47a1;
-            margin-left: auto;
-        }
-
-        .ija {
-            background: #e8f5e9;
-            color: #1b5e20;
-            margin-right: auto;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #b71c1c;
-            margin-right: auto;
-        }
-
-        .controles {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .input-grupo {
-            display: flex;
-            gap: 8px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            min-width: 0;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 12px 16px;
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        #btn-voz {
-            background-color: #34a853;
-            width: 100%;
-            font-size: 1.05rem;
-        }
-
-        #btn-voz.escuchando {
-            background-color: #ea4335;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.65; }
-        }
-    </style>
-</head>
-
-<body>
-    <main class="container">
-        <h1>IJA — Núcleo Operativo</h1>
-
-        <div id="estado">Preparando conexión...</div>
-
-        <div id="chat-log" aria-live="polite">
-            <div class="mensaje ija">
-                Hola. Soy IJA, Israel Jacob Arizmendi.
-                Estoy listo para comunicarme contigo.
-            </div>
-        </div>
-
-        <div class="controles">
-            <button id="btn-voz" type="button">
-                🎙️ Hablar con IJA
-            </button>
-
-            <div class="input-grupo">
-                <input
-                    type="text"
-                    id="input-texto"
-                    placeholder="Escribe tu mensaje..."
-                    autocomplete="off"
-                >
-
-                <button id="btn-enviar" type="button">
-                    Enviar
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const URL_APPS_SCRIPT =
-            "https://script.google.com/macros/s/AKfycby__4fin-0zRRjhPcSDvtO_u5P7s1TJbaFkimAItmb0PdIO7x7d_DXfhECN6iibaxpcrw/exec"
-
-        const chatLog = document.getElementById("chat-log");
-        const estado = document.getElementById("estado");
-        const inputTexto = document.getElementById("input-texto");
-        const btnEnviar = document.getElementById("btn-enviar");
-        const btnVoz = document.getElementById("btn-voz");
-
-        let enviando = false;
-        let reconocimiento = null;
-
-        function agregarAlChat(remitente, texto, clase) {
-            const div = document.createElement("div");
-            div.className = "mensaje " + clase;
-
-            const nombre = document.createElement("strong");
-            nombre.textContent = remitente + ": ";
-
-            const contenido = document.createElement("span");
-            contenido.textContent = String(texto);
-
-            div.appendChild(nombre);
-            div.appendChild(contenido);
-            chatLog.appendChild(div);
-
-            chatLog.scrollTop = chatLog.scrollHeight;
-            return div;
-        }
-
-        function hablarTexto(texto) {
-            if (!("speechSynthesis" in window)) return;
-
-            window.speechSynthesis.cancel();
-
-            const voz = new SpeechSynthesisUtterance(texto);
-            voz.lang = "es-ES";
-            voz.rate = 1;
-
-            window.speechSynthesis.speak(voz);
-        }
-
-        async function comprobarConexion() {
-            estado.textContent = "Comprobando servicio...";
-
-            try {
-                const response = await fetch(URL_APPS_SCRIPT);
-                const data = await response.json();
-
-                if (data.ok) {
-                    estado.textContent = "Servicio IJA disponible";
-                } else {
-                    estado.textContent = "El servicio informó un problema";
-                }
-            } catch (error) {
-                estado.textContent =
-                    "No se pudo comprobar la conexión con IJA";
-                console.error("Comprobación:", error);
-            }
-        }
-
-        async function enviarAProtegido(mensaje) {
-            mensaje = String(mensaje || "").trim();
-
-            if (!mensaje || enviando) return;
-
-            agregarAlChat("Tú", mensaje, "usuario");
-
-            const cargando = agregarAlChat(
-                "IJA",
-                "Estoy procesando tu mensaje...",
-                "ija"
-            );
-
-            enviando = true;
-            btnEnviar.disabled = true;
-            estado.textContent = "Esperando respuesta del motor...";
-
-            try {
-                const response = await fetch(URL_APPS_SCRIPT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8"
-                    },
-                    body: JSON.stringify({
-                        mensaje: mensaje
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        "Error HTTP " + response.status
-                    );
-                }
-
-                if (!data.ok) {
-                    throw new Error(
-                        data.error ||
-                        data.detalle ||
-                        "El motor no pudo procesar el mensaje."
-                    );
-                }
-
-                const respuestaIJA =
-    data.detalle ||
-    data.error ||
-    data.respuesta ||
-    data.resultado ||
-    "El motor respondió, pero no devolvió texto.";
-
-                cargando.remove();
-
-                agregarAlChat("IJA", respuestaIJA, "ija");
-                estado.textContent = "Respuesta recibida";
-                hablarTexto(respuestaIJA);
-
-            } catch (error) {
-                cargando.remove();
-
-                agregarAlChat(
-                    "IJA",
-                    "No pude completar la solicitud. " +
-                    "Detalle: " + error.message,
-                    "error"
-                );
-
-                estado.textContent = "No se pudo completar la solicitud";
-                console.error("Error de conexión:", error);
-
-            } finally {
-                enviando = false;
-                btnEnviar.disabled = false;
-                inputTexto.focus();
-            }
-        }
-
-        function enviarMensajeTexto() {
-            const texto = inputTexto.value.trim();
-
-            if (!texto || enviando) return;
-
-            inputTexto.value = "";
-            enviarAProtegido(texto);
-        }
-
-        function activarVoz() {
-            const SpeechRecognition =
-                window.SpeechRecognition ||
-                window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                alert(
-                    "El reconocimiento de voz no está disponible " +
-                    "en este navegador. Puedes escribir tu mensaje."
-                );
-                return;
-            }
-
-            if (reconocimiento) {
-                reconocimiento.stop();
-                return;
-            }
-
-            const nuevoReconocimiento = new SpeechRecognition();
-            reconocimiento = nuevoReconocimiento;
-
-            nuevoReconocimiento.lang = "es-ES";
-            nuevoReconocimiento.interimResults = false;
-            nuevoReconocimiento.maxAlternatives = 1;
-
-            btnVoz.classList.add("escuchando");
-            btnVoz.textContent = "🎧 Escuchando...";
-
-            nuevoReconocimiento.onresult = function(event) {
-                const transcripcion =
-                    event.results[0][0].transcript;
-
-                inputTexto.value = transcripcion;
-                enviarAProtegido(transcripcion);
-            };
-
-            nuevoReconocimiento.onerror = function(event) {
-                console.error("Error de voz:", event.error);
-
-                if (event.error !== "no-speech") {
-                    estado.textContent =
-                        "No se pudo reconocer la voz";
-                }
-            };
-
-            nuevoReconocimiento.onend = function() {
-                if (reconocimiento === nuevoReconocimiento) {
-                    reconocimiento = null;
-                }
-
-                btnVoz.classList.remove("escuchando");
-                btnVoz.textContent = "🎙️ Hablar con IJA";
-            };
-
-            try {
-                nuevoReconocimiento.start();
-            } catch (error) {
-                reconocimiento = null;
-                btnVoz.classList.remove("escuchando");
-                btnVoz.textContent = "🎙️ Hablar con IJA";
-                estado.textContent =
-                    "No se pudo iniciar el micrófono";
-            }
-        }
-
-        btnEnviar.addEventListener("click", enviarMensajeTexto);
-
-        inputTexto.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                enviarMensajeTexto();
-            }
-        });
-
-        btnVoz.addEventListener("click", activarVoz);
-
-        comprobarConexion();
-    </script>
-</body>
-</html>
+        cargando.remove();
+        agregarAlChat("IJA", data.reply, "ija");
+        estado.textContent = "Respuesta recibida";
+        hablarTexto(data.reply);
+
+    } catch (error) {
+        cargando.remove();
+
+        agregarAlChat(
+            "IJA",
+            "No pude completar la solicitud. Detalle: " +
+                error.message,
+            "error"
+        );
+
+        estado.textContent = "No se pudo completar la solicitud";
+        console.error("Error de conexión:", error);
+
+    } finally {
+        enviando = false;
+        btnEnviar.disabled = false;
+        inputTexto.focus();
+    }
+}
